@@ -1,0 +1,93 @@
+// Custom variables
+$primary: #25D366; // WhatsApp-like green
+$secondary: #34B7F1; // WhatsApp blue
+$light: #f8f9fa;
+$dark: #343a40;
+
+// Import Bootstrap
+@import '~bootstrap/scss/bootstrap';
+
+// Custom styles
+body {
+  background-color: #f0f2f5;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  padding-top: 20px;
+}
+
+.chat-page {
+  height: calc(100vh - 56px);
+  
+  .sidebar-col {
+    background-color: white;
+    border-right: 1px solid #dee2e6;
+    padding: 15px;
+    height: 100%;
+    overflow-y: auto;
+  }
+  
+  .main-chat-col {
+    background-color: #e5ddd5;
+    padding: 15px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      
+      .messages-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+      }
+    }
+  }
+  
+  .comments-col {
+    background-color: white;
+    border-left: 1px solid #dee2e6;
+    padding: 15px;
+    height: 100%;
+    overflow-y: auto;
+  }
+}
+
+.comments-body {
+  overflow-y: auto;
+  max-height: calc(100vh - 250px);
+}
+
+// Animations
+.message-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.message-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 300ms ease-in;
+}
+
+.comment-enter {
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+.comment-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: all 300ms ease-in;
+}
