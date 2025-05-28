@@ -1,38 +1,29 @@
-import { Link } from 'react-router-dom';
+import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
-import { Container, Navbar as BSNavbar, Nav } from 'react-bootstrap';
-import { motion } from 'framer-motion';
-import { FiMessageSquare, FiHome } from 'react-icons/fi';
 
 export default function Navbar() {
   return (
-    <BSNavbar bg="dark" variant="dark" expand="lg" className="glass-card">
-      <Container>
-        <motion.div
-          initial={{ x: -20, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <BSNavbar.Brand as={Link} to="/" className="fw-bold d-flex align-items-center">
-            <FiMessageSquare className="me-2" />
-            <span className="gradient-text">ModernChat</span>
-          </BSNavbar.Brand>
-        </motion.div>
-        <BSNavbar.Toggle aria-controls="basic-navbar-nav" />
-        <BSNavbar.Collapse id="basic-navbar-nav">
-          <Nav className="ms-auto">
-            <Nav.Link as={Link} to="/" className="d-flex align-items-center">
-              <FiHome className="me-1" /> Home
-            </Nav.Link>
-            <motion.div whileHover={{ scale: 1.05 }}>
-              <Nav.Link as={Link} to="/chat" className="btn btn-primary ms-2">
-                Start Chatting
-              </Nav.Link>
-            </motion.div>
-          </Nav>
-        </BSNavbar.Collapse>
-      </Container>
-    </BSNavbar>
+    <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom px-3">
+      <div className="container-fluid">
+        <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span className="navbar-toggler-icon"></span>
+        </button>
+<a className="navbar-brand" href="#">
+  <img src="https://raw.githubusercontent.com/abanoub1234/kkkk/refs/heads/main/new.png" alt="DevMatch Logo" style={{ height: '30px' }} />
+</a>
+        <div className="collapse navbar-collapse justify-content-between" id="navbarNav">
+          <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+            <li className="nav-item"><a className="nav-link" href="#">Services</a></li>
+            <li className="nav-item"><a className="nav-link" href="#">Portfolios</a></li>
+            <li className="nav-item"><a className="nav-link" href="#">Comunity</a></li>
+            <li className="nav-item"><a className="nav-link" href="#">Freelancers</a></li>
+          </ul>
+          <div>
+            <button className="btn btn-outline-primary mx-1">Login</button>
+            <button className="btn btn-primary">Sign Up</button>
+          </div>
+        </div>
+      </div>
+    </nav>
   );
 }
