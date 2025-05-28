@@ -1,7 +1,10 @@
 import { Form, InputGroup, Button } from 'react-bootstrap';
 import { motion } from 'framer-motion';
-import { IoSend } from 'react-icons/io5';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+import { FiSend } from 'react-icons/fi';
 import { useState } from 'react';
+
 export default function MessageInput({ onSend }) {
   const [message, setMessage] = useState('');
 
@@ -20,19 +23,23 @@ export default function MessageInput({ onSend }) {
       transition={{ delay: 0.2 }}
     >
       <Form onSubmit={handleSubmit}>
-        <InputGroup className="mb-3">
+        <InputGroup className="mb-3 glass-card p-1">
           <Form.Control
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type a message..."
+            placeholder="Type your message..."
+            className="border-0 bg-transparent text-white"
+            style={{ outline: 'none', boxShadow: 'none' }}
           />
           <Button 
             variant="primary" 
             type="submit"
             disabled={!message.trim()}
+            className="rounded-circle d-flex align-items-center justify-content-center"
+            style={{ width: '40px', height: '40px' }}
           >
-            <IoSend />
+            <FiSend size={18} />
           </Button>
         </InputGroup>
       </Form>

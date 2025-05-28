@@ -4,8 +4,11 @@ import Sidebar from '../components/Sidebar';
 import ChatMessage from '../components/ChatMessage';
 import MessageInput from '../components/MessageInput';
 import CommentSection from '../components/CommentSection';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { chatData } from '../utils/chatData';
+import { FiUsers, FiMessageCircle } from 'react-icons/fi';
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 export default function ChatPage() {
   const [messages, setMessages] = useState(chatData);
@@ -16,8 +19,9 @@ export default function ChatPage() {
     setMessages([...messages, {
       id: messages.length + 1,
       user: 'You',
+      avatar: 'https://i.pravatar.cc/150?img=5',
       text: newMessage,
-      time: new Date().toLocaleTimeString(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       comments: []
     }]);
   };
@@ -34,8 +38,9 @@ export default function ChatPage() {
             {
               id: msg.comments.length + 1,
               user: 'You',
+              avatar: 'https://i.pravatar.cc/150?img=5',
               text: commentText,
-              time: new Date().toLocaleTimeString()
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             }
           ]
         };
@@ -48,53 +53,73 @@ export default function ChatPage() {
   };
 
   return (
-    <Container fluid className="chat-page">
-      <Row className="g-0">
-        <Col md={3} className="sidebar-col">
-          <Sidebar />
+    <Container fluid className="chat-page py-3">
+      <Row className="g-3">
+        {/* Sidebar Column */}
+        <Col md={3} className="d-none d-md-block">
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="h-100"
+          >
+            <Sidebar />
+          </motion.div>
         </Col>
         
-        <Col md={6} className="main-chat-col">
+        {/* Main Chat Column */}
+        <Col xs={12} md={showComments ? 6 : 9}>
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="chat-container"
+            className="h-100 d-flex flex-column"
           >
-            <div className="messages-container">
-              {messages.map(message => (
-                <ChatMessage 
-                  key={message.id}
-                  message={message}
-                  isSelected={selectedMessage?.id === message.id}
-                  onSelect={() => {
-                    setSelectedMessage(message);
-                    setShowComments(true);
-                  }}
-                />
-              ))}
+            <div className="d-flex align-items-center mb-3">
+              <FiMessageCircle className="me-2" size={24} />
+              <h4 className="mb-0">Group Chat</h4>
+            </div>
+            
+            <div className="messages-container flex-grow-1 mb-3">
+              <AnimatePresence>
+                {messages.map(message => (
+                  <ChatMessage 
+                    key={message.id}
+                    message={message}
+                    isSelected={selectedMessage?.id === message.id}
+                    onSelect={() => {
+                      setSelectedMessage(message);
+                      setShowComments(true);
+                    }}
+                  />
+                ))}
+              </AnimatePresence>
             </div>
             
             <MessageInput onSend={handleSendMessage} />
           </motion.div>
         </Col>
         
-        <Col md={3} className="comments-col">
-          {showComments && selectedMessage && (
-            <motion.div
-              initial={{ x: 100, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: 100, opacity: 0 }}
-              className="comments-container"
-            >
-              <CommentSection 
-                comments={selectedMessage.comments}
-                onAddComment={handleAddComment}
-                onClose={() => setShowComments(false)}
-              />
-            </motion.div>
+        {/* Comments Column */}
+        <AnimatePresence>
+          {showComments && (
+            <Col xs={12} md={3} className="mt-md-0 mt-3">
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 50 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="h-100"
+              >
+                <CommentSection 
+                  comments={selectedMessage?.comments || []}
+                  onAddComment={handleAddComment}
+                  onClose={() => setShowComments(false)}
+                />
+              </motion.div>
+            </Col>
           )}
-        </Col>
+        </AnimatePresence>
       </Row>
     </Container>
   );
