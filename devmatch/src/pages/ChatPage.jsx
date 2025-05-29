@@ -9,6 +9,7 @@ import { chatData } from '../utils/chatData';
 import { FiUsers, FiMessageCircle } from 'react-icons/fi';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Chatpage.css';
+import Navbar from '../components/Navbar'; // Adjust the path if needed
 
 export default function ChatPage() {
   const [messages, setMessages] = useState(chatData);
@@ -53,6 +54,8 @@ export default function ChatPage() {
   };
 
   return (
+    <>
+      <Navbar /> 
     <Container fluid className="chat-page py-3">
       <Row className="g-3">
         {/* Sidebar Column */}
@@ -122,5 +125,7 @@ export default function ChatPage() {
         </AnimatePresence>
       </Row>
     </Container>
+        </>
+
   );
 }

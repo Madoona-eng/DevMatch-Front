@@ -1,5 +1,6 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { Link } from 'react-router-dom';
 
 export default function Navbar() {
   return (
@@ -8,14 +9,19 @@ export default function Navbar() {
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span className="navbar-toggler-icon"></span>
         </button>
-<a className="navbar-brand" href="#">
-  <img src="https://raw.githubusercontent.com/abanoub1234/kkkk/refs/heads/main/new.png" alt="DevMatch Logo" style={{ height: '30px' }} />
-</a>
+<Link to="/" className="navbar-brand">
+  <img
+    src="https://raw.githubusercontent.com/abanoub1234/kkkk/refs/heads/main/new.png"
+    alt="DevMatch Logo"
+    style={{ height: '30px' }}
+  />
+</Link>
+
         <div className="collapse navbar-collapse justify-content-between" id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item"><a className="nav-link" href="#">Services</a></li>
             <li className="nav-item"><a className="nav-link" href="#">Portfolios</a></li>
-            <li className="nav-item"><a className="nav-link" href="#">Comunity</a></li>
+<li className="nav-item"><a className="nav-link" href="/chat">Community</a></li>
             <li className="nav-item"><a className="nav-link" href="#">Freelancers</a></li>
           </ul>
           <div>

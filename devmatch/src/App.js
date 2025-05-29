@@ -11,9 +11,11 @@ function App() {
 
       <div className="main-content">
         <Routes>
-       
           <Route path="/chat" element={<ChatPage />} />
-        
+          <Route path="/" element={<HomePage />} />
+          <Route path="*" element={<NotFound />} /> 
+          
+
         </Routes>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import Footer from '../components/Footer'; // Make sure the Footer path is correct
+import Navbar from '../components/Navbar'; // Make sure the Footer path is correct
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 const specializations = [
@@ -98,6 +99,9 @@ const whyNafdely = [
 export default function HomePage() {
   return (
     <>
+
+      <Navbar />
+
       <main>
        {/* Hero Section */}
 <div className="bg-dark text-white text-center position-relative" style={{
