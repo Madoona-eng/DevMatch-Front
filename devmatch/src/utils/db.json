@@ -1,0 +1,143 @@
+{
+    "users": [{
+            "user_id": 1,
+            "name": "Alice Johnson",
+            "email": "alice@example.com",
+            "password": "123456",
+            "role": "programmer",
+            "cv_url": "https://cv.example.com/alice.pdf",
+            "refused": false,
+            "registration_date": "2025-05-28T10:00:00Z",
+            "id": "0419"
+        },
+        {
+            "user_id": 2,
+            "name": "Bob Recruiter",
+            "email": "bob@example.com",
+            "password": "abcdef",
+            "role": "recruiter",
+            "cv_url": "",
+            "refused": false,
+            "registration_date": "2025-05-20T14:00:00Z",
+            "id": "fcd6"
+        },
+        {
+            "id": "a8f8",
+            "name": "maria_samuel",
+            "email": "maria.samuel1818@gmail.com",
+            "password": "Maria@12345",
+            "role": "programmer",
+            "cv_url": "",
+            "refused": false,
+            "registration_date": "2025-05-28T18:40:36.016Z"
+        },
+        {
+            "id": "4f29",
+            "name": "maria_samuel",
+            "email": "maria.samuel@gmail.com",
+            "password": "Maria@12345",
+            "confirmPassword": "Maria@12345",
+            "role": "programmer",
+            "cv_url": "",
+            "refused": false,
+            "registration_date": "2025-05-28T19:07:31.187Z"
+        },
+        {
+            "id": "7799",
+            "name": "maria_samuel",
+            "email": "tota@gmail.com",
+            "password": "Tota@12345",
+            "confirmPassword": "Tota@12345",
+            "role": "programmer",
+            "cv_url": "",
+            "refused": false,
+            "registration_date": "2025-05-28T19:39:06.717Z"
+        }
+    ],
+    "jobs": [{
+            "job_id": 1,
+            "recruiter_id": 2,
+            "title": "Frontend Developer",
+            "description": "Develop responsive user interfaces.",
+            "specialization_id": 1,
+            "governorate_id": 1,
+            "created_at": "2025-05-25T08:30:00Z",
+            "status": "open",
+            "id": "8fa5"
+        },
+        {
+            "job_id": 2,
+            "recruiter_id": 2,
+            "title": "Backend Developer",
+            "description": "Build RESTful APIs and work with databases.",
+            "specialization_id": 2,
+            "governorate_id": 2,
+            "created_at": "2025-05-26T10:00:00Z",
+            "status": "closed",
+            "id": "7d55"
+        },
+        {
+            "job_id": 3,
+            "recruiter_id": 2,
+            "title": "Full Stack Engineer",
+            "description": "Work on both client and server-side of the application.",
+            "specialization_id": 1,
+            "governorate_id": 2,
+            "created_at": "2025-05-27T09:45:00Z",
+            "status": "open",
+            "id": "123a"
+        },
+        {
+            "job_id": 4,
+            "recruiter_id": 2,
+            "title": "UI/UX Designer",
+            "description": "Design intuitive user experiences and user interfaces.",
+            "specialization_id": 1,
+            "governorate_id": 1,
+            "created_at": "2025-05-28T11:20:00Z",
+            "status": "open",
+            "id": "456b"
+        },
+        {
+            "job_id": 5,
+            "recruiter_id": 2,
+            "title": "DevOps Engineer",
+            "description": "Manage CI/CD pipelines and infrastructure automation.",
+            "specialization_id": 2,
+            "governorate_id": 2,
+            "created_at": "2025-05-28T13:00:00Z",
+            "status": "open",
+            "id": "789c"
+        }
+    ],
+    "specializations": [{
+            "spec_id": 1,
+            "name": "Frontend",
+            "id": "59f3"
+        },
+        {
+            "spec_id": 2,
+            "name": "Backend",
+            "id": "304c"
+        }
+    ],
+    "governorates": [{
+            "governorate_id": 1,
+            "name": "Cairo",
+            "id": "85d4"
+        },
+        {
+            "governorate_id": 2,
+            "name": "Alexandria",
+            "id": "0a5f"
+        }
+    ],
+    "applications": [],
+    "bookmarks": [],
+    "chats": [],
+    "notifications": [],
+    "profiles": [],
+    "ratings": [],
+    "tasks": [],
+    "userSpecializations": []
+}
