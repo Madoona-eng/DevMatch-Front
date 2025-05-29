@@ -1,0 +1,9 @@
+.chat-page{
+
+  
+  background: linear-gradient(135deg, #bfc7eb 0%, #4d88df 100%);
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, sans-serif;
+  color: var(--light);
+
+}

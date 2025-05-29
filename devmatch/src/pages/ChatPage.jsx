@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { chatData } from '../utils/chatData';
 import { FiUsers, FiMessageCircle } from 'react-icons/fi';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
+import './Chatpage.css';
 
 export default function ChatPage() {
   const [messages, setMessages] = useState(chatData);
