@@ -19,15 +19,19 @@ export default function Navbar() {
 
         <div className="collapse navbar-collapse justify-content-between" id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-            <li className="nav-item"><a className="nav-link" href="#">Services</a></li>
-            <li className="nav-item"><a className="nav-link" href="#">Portfolios</a></li>
+<li className="nav-item">
+  <Link to="/jobs" className="nav-link">Jobs</Link>
+</li>            <li className="nav-item"><a className="nav-link" href="#">Portfolios</a></li>
 <li className="nav-item"><a className="nav-link" href="/chat">Community</a></li>
             <li className="nav-item"><a className="nav-link" href="#">Freelancers</a></li>
           </ul>
           <div>
-            <button className="btn btn-outline-primary mx-1">Login</button>
-            <button className="btn btn-primary">Sign Up</button>
-          </div>
+<Link to="/login">
+  <button className="btn btn-outline-primary mx-1">Login</button>
+</Link>          
+<Link to="/register">
+  <button className="btn btn-primary">Sign Up</button>
+</Link>          </div>
         </div>
       </div>
     </nav>

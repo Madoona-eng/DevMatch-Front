@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import Navbar from '../components/Navbar'; // Adjust the path if needed
 
 export default function JobsPage() {
   const [jobs, setJobs] = useState([]);
@@ -21,6 +22,8 @@ export default function JobsPage() {
   }, []);
 
   return (
+    <>
+    <Navbar /> 
     <div className="container py-5">
       <div className="text-center mb-5">
         <h1 className="text-primary mb-3">Available Job Opportunities</h1>
@@ -85,5 +88,6 @@ export default function JobsPage() {
         </div>
       )}
     </div>
+    </>
   );
 }
