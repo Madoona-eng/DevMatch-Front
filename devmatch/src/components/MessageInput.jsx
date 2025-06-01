@@ -29,7 +29,7 @@ export default function MessageInput({ onSend }) {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type your message..."
-            className="border-0 bg-transparent text-white"
+            className="border-0 bg-transparent text-black"
             style={{ outline: 'none', boxShadow: 'none' }}
           />
           <Button 

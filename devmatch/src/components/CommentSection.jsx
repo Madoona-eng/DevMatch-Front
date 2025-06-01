@@ -23,7 +23,7 @@ export default function CommentSection({ comments, onAddComment, onClose }) {
         <Button 
           variant="link" 
           onClick={onClose}
-          className="text-light p-0"
+          className="text-black p-0"
         >
           <FiX size={20} />
         </Button>
@@ -32,7 +32,7 @@ export default function CommentSection({ comments, onAddComment, onClose }) {
       <Card.Body className="comments-body">
         {comments.length === 0 ? (
           <div className="text-center py-4">
-            <p className="text-light">No comments yet</p>
+            <p className="text-black">No comments yet</p>
             <small className="text-muted">Be the first to comment</small>
           </div>
         ) : (

@@ -9,7 +9,7 @@ export default function JobsPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios.get('http://localhost:3001/jobs')
+    axios.get('http://localhost:8000/jobs')
       .then(res => {
         setJobs(res.data);
         setLoading(false);
