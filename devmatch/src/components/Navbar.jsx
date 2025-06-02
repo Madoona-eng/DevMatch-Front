@@ -23,7 +23,9 @@ export default function Navbar() {
   <Link to="/jobs" className="nav-link">Jobs</Link>
 </li>            <li className="nav-item"><a className="nav-link" href="#">Portfolios</a></li>
 <li className="nav-item"><a className="nav-link" href="/chat">Community</a></li>
-            <li className="nav-item"><a className="nav-link" href="#">Freelancers</a></li>
+<li className="nav-item">
+  <a className="nav-link" href="/Freelancers">Freelancers</a>
+</li>
           </ul>
           <div>
 <Link to="/login">

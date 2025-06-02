@@ -7,6 +7,10 @@ import Register from './pages/Register';
 import Login from './pages/Login';
 import JobsPage from './pages/JobsPage';
 import JobDetails from './pages/JobDetails';
+import Freelancers from './pages/Freelancers';
+import CompleteFreelancerProfile from './pages/ProfileCompletionForm';
+import FreelancerProfile from './pages/FreelancerProfile';
+
 // import './App.css';
 
 function App() {
@@ -21,6 +25,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/jobs" element={<JobsPage />} />
           <Route path="/jobs/:id" element={<JobDetails />} />
+          <Route path="/Freelancers" element={<Freelancers />} />
+          <Route path="/CompleteFreelancerProfile" element={<CompleteFreelancerProfile />} />
+          <Route path="/FreelancerProfile/:id" element={<FreelancerProfile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

@@ -122,7 +122,7 @@ export default function Register() {
     try {
       // Check if email already exists
       const { data: existingUsers } = await axios.get(
-        `http://localhost:3001/users?email=${form.email}`
+        `http://localhost:8000/users?email=${form.email}`
       );
       
       if (existingUsers.length > 0) {
@@ -137,7 +137,7 @@ export default function Register() {
         registration_date: new Date().toISOString(),
       };
 
-      await axios.post('http://localhost:3001/users', newUser);
+      await axios.post('http://localhost:8000/users', newUser);
       
       // Success feedback
       setApiError('');
