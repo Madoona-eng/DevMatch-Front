@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
-import Sidebar from '../components/Sidebar';
+import Sidebar from '../components/Sidebarchat';
 import ChatMessage from '../components/ChatMessage';
 import MessageInput from '../components/MessageInput';
 import CommentSection from '../components/CommentSection';

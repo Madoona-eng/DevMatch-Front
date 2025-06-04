@@ -3,6 +3,7 @@ import Footer from '../components/Footer'; // Make sure the Footer path is corre
 import Navbar from '../components/Navbar'; // Make sure the Footer path is correct
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+
 const specializations = [
   {
     icon: "bi-laptop",
