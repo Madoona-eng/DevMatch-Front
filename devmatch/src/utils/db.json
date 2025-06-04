@@ -1,123 +1,147 @@
 {
     "users": [{
-            "user_id": 1,
-            "name": "Alice Johnson",
-            "email": "alice@example.com",
-            "password": "123456",
-            "role": "programmer",
-            "cv_url": "https://cv.example.com/alice.pdf",
-            "refused": false,
-            "registration_date": "2025-05-28T10:00:00Z",
-            "id": "0419"
-        },
-        {
-            "user_id": 2,
-            "name": "Bob Recruiter",
-            "email": "bob@example.com",
-            "password": "abcdef",
+            "id": "88fc",
+            "name": "yossef",
+            "email": "yossef@gmail.com",
+            "password": "Yossef@12345",
             "role": "recruiter",
             "cv_url": "",
             "refused": false,
-            "registration_date": "2025-05-20T14:00:00Z",
-            "id": "fcd6"
+            "registration_date": "2025-06-02T14:01:56.454Z",
+            "company_name": "Tech Innovations",
+            "company_description": "Leading tech solutions provider",
+            "company_website": "https://techinnovations.com",
+            "company_size": "51-200 employees",
+            "linkedin": "https://linkedin.com/company/tech-innovations",
+            "logo": null,
+            "logo_url": "https://techinnovations.com/logo.png",
+            "location": "Cairo, Egypt",
+            "founded_year": "2018",
+            "isProfileComplete": true
         },
         {
-            "id": "a8f8",
-            "name": "maria_samuel",
-            "email": "maria.samuel1818@gmail.com",
-            "password": "Maria@12345",
-            "role": "programmer",
+            "id": "1a1d",
+            "name": "Tony",
+            "email": "tony@gmail.com",
+            "password": "Tony@12345",
+            "role": "recruiter",
             "cv_url": "",
             "refused": false,
-            "registration_date": "2025-05-28T18:40:36.016Z"
+            "registration_date": "2025-06-03T09:50:41.975Z",
+            "isProfileComplete": true,
+            "company_name": "uu",
+            "company_description": "aa",
+            "company_website": "https://linkedin.com/company/tech-innovations",
+            "company_size": "201-500 employees",
+            "linkedin": "https://linkedin.com/company/tech-innovations",
+            "logo": null,
+            "logo_url": "",
+            "location": "Giza",
+            "founded_year": "2020"
         },
         {
-            "id": "4f29",
-            "name": "maria_samuel",
-            "email": "maria.samuel@gmail.com",
-            "password": "Maria@12345",
-            "confirmPassword": "Maria@12345",
+            "id": "kjut",
+            "name": "ria",
+            "email": "ria@gmail.com",
+            "password": "Ria@12345",
             "role": "programmer",
-            "cv_url": "",
+            "cv_url": "uploads/Maria-Samuel_CV.pdf",
             "refused": false,
-            "registration_date": "2025-05-28T19:07:31.187Z"
+            "registration_date": "2025-06-03T10:39:44.075Z"
         },
         {
-            "id": "7799",
-            "name": "maria_samuel",
-            "email": "tota@gmail.com",
-            "password": "Tota@12345",
-            "confirmPassword": "Tota@12345",
+            "id": "a1b2",
+            "name": "Ahmed",
+            "email": "ahmed@gmail.com",
+            "password": "Ahmed@12345",
             "role": "programmer",
-            "cv_url": "",
+            "cv_url": "uploads/Ahmed_Mohamed_CV.pdf",
             "refused": false,
-            "registration_date": "2025-05-28T19:39:06.717Z"
+            "registration_date": "2025-06-04T11:25:33.120Z"
         }
     ],
     "jobs": [{
             "job_id": 1,
-            "recruiter_id": 2,
+            "recruiter_id": "fcd6",
             "title": "Frontend Developer",
-            "description": "Develop responsive user interfaces.",
-            "specialization_id": 1,
-            "governorate_id": 1,
+            "description": "Develop responsive user interfaces using React",
+            "specialization_id": "59f3",
+            "governorate_id": "85d4",
             "created_at": "2025-05-25T08:30:00Z",
             "status": "open",
             "id": "8fa5"
         },
         {
             "job_id": 2,
-            "recruiter_id": 2,
+            "recruiter_id": "fcd6",
             "title": "Backend Developer",
-            "description": "Build RESTful APIs and work with databases.",
-            "specialization_id": 2,
-            "governorate_id": 2,
+            "description": "Build scalable APIs with Node.js",
+            "specialization_id": "304c",
+            "governorate_id": "0a5f",
             "created_at": "2025-05-26T10:00:00Z",
             "status": "closed",
             "id": "7d55"
         },
         {
             "job_id": 3,
-            "recruiter_id": 2,
+            "recruiter_id": "88fc",
             "title": "Full Stack Engineer",
-            "description": "Work on both client and server-side of the application.",
-            "specialization_id": 1,
-            "governorate_id": 2,
+            "description": "Develop end-to-end web applications",
+            "specialization_id": "59f3",
+            "governorate_id": "0a5f",
             "created_at": "2025-05-27T09:45:00Z",
             "status": "open",
             "id": "123a"
         },
         {
-            "job_id": 4,
-            "recruiter_id": 2,
-            "title": "UI/UX Designer",
-            "description": "Design intuitive user experiences and user interfaces.",
-            "specialization_id": 1,
-            "governorate_id": 1,
-            "created_at": "2025-05-28T11:20:00Z",
-            "status": "open",
-            "id": "456b"
+            "id": "8e15",
+            "title": "Odoo Developer",
+            "description": "Develop ERP solutions with Odoo",
+            "specialization_id": "304c",
+            "governorate_id": "0a5f",
+            "recruiter_id": "88fc",
+            "created_at": "2025-06-02T10:46:32.667Z",
+            "status": "open"
         },
         {
-            "job_id": 5,
-            "recruiter_id": 2,
+            "id": "c4a6",
+            "title": "Backend NodeJs Developer",
+            "description": "Develop scalable backend services with Node.js",
+            "specialization_id": "304c",
+            "governorate_id": "85d4",
+            "recruiter_id": "88fc",
+            "created_at": "2025-06-04T20:01:24.480Z",
+            "status": "open"
+        },
+        {
+            "id": "d5e7",
+            "title": "React Native Developer",
+            "description": "Build cross-platform mobile applications",
+            "specialization_id": "59f3",
+            "governorate_id": "85d4",
+            "recruiter_id": "88fc",
+            "created_at": "2025-06-05T09:15:00Z",
+            "status": "open"
+        },
+        {
+            "id": "f6g8",
             "title": "DevOps Engineer",
-            "description": "Manage CI/CD pipelines and infrastructure automation.",
-            "specialization_id": 2,
-            "governorate_id": 2,
-            "created_at": "2025-05-28T13:00:00Z",
-            "status": "open",
-            "id": "789c"
+            "description": "Implement CI/CD pipelines and cloud infrastructure",
+            "specialization_id": "304c",
+            "governorate_id": "0a5f",
+            "recruiter_id": "88fc",
+            "created_at": "2025-06-05T14:30:00Z",
+            "status": "open"
         }
     ],
     "specializations": [{
             "spec_id": 1,
-            "name": "Frontend",
+            "name": "Frontend Development",
             "id": "59f3"
         },
         {
             "spec_id": 2,
-            "name": "Backend",
+            "name": "Backend Development",
             "id": "304c"
         }
     ],
@@ -132,7 +156,61 @@
             "id": "0a5f"
         }
     ],
-    "applications": [],
+    "applications": [{
+            "id": "b06e",
+            "job_id": "123a",
+            "applicant_id": "kjut",
+            "cover_letter": "hello agin ",
+            "cv_url": "uploads/Maria-Samuel_CV.pdf",
+            "status": "rejected",
+            "applied_at": "2025-06-03T14:04:01.853Z"
+        },
+        {
+            "id": "601a",
+            "job_id": "8fa5",
+            "applicant_id": "kjut",
+            "cover_letter": "hello agin",
+            "cv_file": "Salma_Hussein.pdf",
+            "status": "rejected",
+            "applied_at": "2025-06-03T14:14:36.594Z"
+        },
+        {
+            "id": "c7d8",
+            "job_id": "8e15",
+            "applicant_id": "kjut",
+            "cover_letter": "I have experience with Odoo development",
+            "cv_url": "uploads/Maria-Samuel_CV.pdf",
+            "status": "pending",
+            "applied_at": "2025-06-04T11:30:45.120Z"
+        },
+        {
+            "id": "e9f0",
+            "job_id": "c4a6",
+            "applicant_id": "a1b2",
+            "cover_letter": "I'm skilled in Node.js backend development",
+            "cv_url": "uploads/Ahmed_Mohamed_CV.pdf",
+            "status": "pending",
+            "applied_at": "2025-06-05T10:15:33.450Z"
+        },
+        {
+            "id": "g1h2",
+            "job_id": "d5e7",
+            "applicant_id": "kjut",
+            "cover_letter": "I have React Native experience",
+            "cv_url": "uploads/Maria-Samuel_CV.pdf",
+            "status": "pending",
+            "applied_at": "2025-06-05T15:20:10.780Z"
+        },
+        {
+            "id": "i3j4",
+            "job_id": "f6g8",
+            "applicant_id": "a1b2",
+            "cover_letter": "I'm experienced in DevOps practices",
+            "cv_url": "uploads/Ahmed_Mohamed_CV.pdf",
+            "status": "pending",
+            "applied_at": "2025-06-05T16:45:22.900Z"
+        }
+    ],
     "bookmarks": [],
     "chats": [],
     "notifications": [],
