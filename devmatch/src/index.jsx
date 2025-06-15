@@ -1,24 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
-import App from './App';
+import App from './App.jsx'; // Ensure we use App.jsx for AuthProvider
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"></link>
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-     //to send the propse 
-  
   <React.StrictMode>
     <BrowserRouter>
-    <App />
-      </BrowserRouter>
+      <App />
+    </BrowserRouter>
   </React.StrictMode>
-  
 );
-
 
 reportWebVitals();

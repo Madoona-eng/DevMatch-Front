@@ -1,14 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Button, Image, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-function ProfileCompletionForm({ id }) {
+function ProfileCompletionForm() {
+  // Get user from localStorage under 'devmatch_user'
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('devmatch_user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setUserId(user.id);
+      } catch (e) {
+        setUserId(null);
+      }
+    } else {
+      setUserId(null);
+    }
+  }, []);
+
   const [aboutMe, setAboutMe] = useState('');
   const [location, setLocation] = useState('');
   const [experience, setExperience] = useState('');
   const [skills, setSkills] = useState('');
-  const [technology, setTechnology] = useState(''); // now a string input
+  const [technology, setTechnology] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [error, setError] = useState('');
@@ -24,84 +41,66 @@ function ProfileCompletionForm({ id }) {
   };
 
   const validateForm = () => {
-    if (!aboutMe.trim()) {
-      setError('Please enter About Me');
-      return false;
-    }
-    if (!location.trim()) {
-      setError('Please enter Location');
-      return false;
-    }
-    if (!experience.trim() || isNaN(experience) || experience < 0) {
-      setError('Please enter a valid Experience (0 or more)');
-      return false;
-    }
-    if (!skills.trim()) {
-      setError('Please enter Skills');
-      return false;
-    }
-    if (!technology.trim()) {
-      setError('Please enter Technology');
-      return false;
-    }
-    if (!imageFile) {
-      setError('Please upload an Image');
-      return false;
-    }
+    if (!aboutMe.trim()) return setError('Please enter About Me') || false;
+    if (!location.trim()) return setError('Please enter Location') || false;
+    if (!experience.trim() || isNaN(experience) || experience < 0)
+      return setError('Please enter a valid Experience') || false;
+    if (!skills.trim()) return setError('Please enter Skills') || false;
+    if (!technology.trim()) return setError('Please enter Technology') || false;
+    if (!imageFile) return setError('Please upload an Image') || false;
     return true;
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError('');
-  setSuccess('');
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
 
-  if (!validateForm()) return;
-
-  try {
-    // Fetch existing user data
-    const existingUserRes = await axios.get(`http://localhost:8000/users/0419`);
-    const existingUser = existingUserRes.data;
-
-    // Convert image file to base64 string (if a new file is selected)
-    const getBase64 = (file) => new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
-
-    let imageBase64 = existingUser.image || '';
-    if (imageFile) {
-      imageBase64 = await getBase64(imageFile);
+    if (!userId) {
+      setError('User not authenticated.');
+      return;
     }
 
-    // Prepare tech array from input string
-    const techArray = technology.split(',').map(t => t.trim()).filter(t => t);
+    if (!validateForm()) return;
 
-    // Merge old user data with new fields
-    const updatedUser = {
-      ...existingUser,
-      aboutMe,
-      location,
-      experience: Number(experience),
-      skills,
-      technology: techArray,
-      image: imageBase64,
-    };
+    try {
+      const existingUserRes = await axios.get(`http://localhost:8000/users/${userId}`);
+      const existingUser = existingUserRes.data;
 
-    // Send updated user data
-    await axios.put(`http://localhost:8000/users/0419`, updatedUser);
+      const getBase64 = (file) =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = (error) => reject(error);
+        });
 
-    setSuccess('Profile updated successfully!');
-    setTimeout(() => navigate('/'), 1000);
+      let imageBase64 = existingUser.image || '';
+      if (imageFile) {
+        imageBase64 = await getBase64(imageFile);
+      }
 
-  } catch (err) {
-    setError('Failed to update profile. Please try again.');
-    console.error(err);
-  }
-};
+      const techArray = technology.split(',').map((t) => t.trim()).filter(Boolean);
 
+      const updatedUser = {
+        ...existingUser,
+        aboutMe,
+        location,
+        experience: Number(experience),
+        skills,
+        technology: techArray,
+        image: imageBase64,
+      };
+
+      await axios.put(`http://localhost:8000/users/${userId}`, updatedUser);
+
+      setSuccess('Profile updated successfully!');
+      setTimeout(() => navigate('/'), 1000);
+    } catch (err) {
+      setError('Failed to update profile. Please try again.');
+      console.error(err);
+    }
+  };
 
   return (
     <Form
@@ -110,7 +109,6 @@ const handleSubmit = async (e) => {
       style={{ maxWidth: 700, margin: 'auto', backgroundColor: '#f8f9fa' }}
     >
       <h3 className="mb-4 text-primary text-center">Complete Your Profile</h3>
-
       {error && <Alert variant="danger">{error}</Alert>}
       {success && <Alert variant="success">{success}</Alert>}
 
@@ -121,7 +119,7 @@ const handleSubmit = async (e) => {
           rows={3}
           placeholder="Tell us about yourself..."
           value={aboutMe}
-          onChange={e => setAboutMe(e.target.value)}
+          onChange={(e) => setAboutMe(e.target.value)}
           isInvalid={!!error && !aboutMe.trim()}
         />
       </Form.Group>
@@ -139,7 +137,12 @@ const handleSubmit = async (e) => {
             <Image
               src={imagePreview}
               roundedCircle
-              style={{ width: 150, height: 150, objectFit: 'cover', border: '2px solid #0d6efd' }}
+              style={{
+                width: 150,
+                height: 150,
+                objectFit: 'cover',
+                border: '2px solid #0d6efd',
+              }}
               alt="Image preview"
             />
           </div>
@@ -152,7 +155,7 @@ const handleSubmit = async (e) => {
           type="text"
           placeholder="Enter your location"
           value={location}
-          onChange={e => setLocation(e.target.value)}
+          onChange={(e) => setLocation(e.target.value)}
           isInvalid={!!error && !location.trim()}
         />
       </Form.Group>
@@ -164,7 +167,7 @@ const handleSubmit = async (e) => {
           min="0"
           placeholder="e.g., 3"
           value={experience}
-          onChange={e => setExperience(e.target.value)}
+          onChange={(e) => setExperience(e.target.value)}
           isInvalid={!!error && (!experience.trim() || isNaN(experience) || experience < 0)}
         />
       </Form.Group>
@@ -175,7 +178,7 @@ const handleSubmit = async (e) => {
           type="text"
           placeholder="e.g., HTML, CSS, JavaScript"
           value={skills}
-          onChange={e => setSkills(e.target.value)}
+          onChange={(e) => setSkills(e.target.value)}
           isInvalid={!!error && !skills.trim()}
         />
       </Form.Group>
@@ -186,7 +189,7 @@ const handleSubmit = async (e) => {
           type="text"
           placeholder="e.g., Angular, React, NodeJS"
           value={technology}
-          onChange={e => setTechnology(e.target.value)}
+          onChange={(e) => setTechnology(e.target.value)}
           isInvalid={!!error && !technology.trim()}
         />
       </Form.Group>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -14,12 +15,12 @@ export default function Login() {
   const [apiError, setApiError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
     
-    // Clear errors when user starts typing
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
     }
@@ -48,6 +49,9 @@ export default function Login() {
           error = 'Password must be at least 6 characters';
         }
         break;
+      default:
+        // No validation needed for other fields
+        break;
     }
     
     setErrors({ ...errors, [name]: error });
@@ -63,14 +67,12 @@ export default function Login() {
     setApiError('');
     setIsLoading(true);
 
-    // Mark all fields as touched
     const newTouched = {};
     Object.keys(form).forEach(key => {
       newTouched[key] = true;
     });
     setTouched(newTouched);
 
-    // Validate all fields
     let isValid = true;
     const newErrors = {};
     
@@ -81,7 +83,6 @@ export default function Login() {
         isValid = false;
       }
     });
-
     setErrors(newErrors);
     
     if (!isValid) {
@@ -90,22 +91,50 @@ export default function Login() {
     }
 
     try {
-      const { data: users } = await axios.get(
-        `http://localhost:8000/users?email=${form.email}&password=${form.password}`
+      const { data: users } = await axios.get('http://localhost:8000/users');
+      
+      const user = users.find(u => 
+        u.email.toLowerCase() === form.email.toLowerCase() && 
+        u.password === form.password
       );
       
-      if (users.length === 0) {
+      if (!user) {
         setApiError('Invalid email or password. Please check your credentials and try again.');
         setIsLoading(false);
         return;
       }
       
-      // Success
-      alert('🎉 Welcome back to DevMatch!');
-      navigate('/');
+      login(user);
+
+      if (user.role === 'recruiter') {
+        if (!user.isProfileComplete || 
+            !user.company_name || 
+            !user.company_description || 
+            !user.company_website) {
+          navigate('/complete-profile');
+        } else {
+          navigate('/');
+        }
+      } else if (user.role === 'programmer') {
+        // Check if freelancer profile is complete
+        const isProfileComplete =
+          user.aboutMe &&
+          user.location &&
+          user.experience &&
+          user.skills &&
+          user.technology &&
+          user.image;
+        if (!isProfileComplete) {
+          navigate('/CompleteFreelancerProfile');
+        } else {
+          navigate('/');
+        }
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       console.error('Login error:', err);
-      setApiError('Something went wrong. Please check your connection and try again.');
+      setApiError('Connection error. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -124,10 +153,7 @@ export default function Login() {
       <div className="container" style={{ maxWidth: '450px' }}>
         <div className="card shadow-lg border-0" style={{ borderRadius: '20px', overflow: 'hidden' }}>
           <div className="card-header text-center py-4" 
-               style={{ 
-                 backgroundColor: '#007bff',
-                 border: 'none'
-               }}>
+               style={{ backgroundColor: '#007bff', border: 'none' }}>
             <h2 className="text-white fw-bold mb-1">
               <i className="bi bi-code-square me-2"></i>
               Welcome Back
@@ -144,7 +170,6 @@ export default function Login() {
             )}
             
             <form onSubmit={handleSubmit} noValidate>
-              {/* Email Field */}
               <div className="mb-3">
                 <label htmlFor="email" className="form-label fw-semibold" style={{ color: '#007bff' }}>
                   <i className="bi bi-envelope me-1"></i> Email Address
@@ -152,16 +177,13 @@ export default function Login() {
                 <input
                   type="email"
                   name="email"
+                  id="email"
                   className={getFieldClass('email')}
                   placeholder="your@email.com"
                   value={form.email}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  style={{ 
-                    borderRadius: '10px', 
-                    padding: '12px 16px',
-                    borderColor: touched.email && !errors.email && form.email ? '#007bff' : undefined
-                  }}
+                  style={{ borderRadius: '10px', padding: '12px 16px' }}
                 />
                 {touched.email && errors.email && (
                   <div className="text-danger small mt-1">
@@ -171,7 +193,6 @@ export default function Login() {
                 )}
               </div>
 
-              {/* Password Field */}
               <div className="mb-4">
                 <label htmlFor="password" className="form-label fw-semibold" style={{ color: '#007bff' }}>
                   <i className="bi bi-lock me-1"></i> Password
@@ -179,16 +200,13 @@ export default function Login() {
                 <input
                   type="password"
                   name="password"
+                  id="password"
                   className={getFieldClass('password')}
                   placeholder="Enter your password"
                   value={form.password}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  style={{ 
-                    borderRadius: '10px', 
-                    padding: '12px 16px',
-                    borderColor: touched.password && !errors.password && form.password ? '#007bff' : undefined
-                  }}
+                  style={{ borderRadius: '10px', padding: '12px 16px' }}
                 />
                 {touched.password && errors.password && (
                   <div className="text-danger small mt-1">
@@ -198,7 +216,6 @@ export default function Login() {
                 )}
               </div>
 
-              {/* Submit Button */}
               <button 
                 type="submit" 
                 className="btn w-100 py-3 fw-semibold mb-3 text-white"
@@ -223,7 +240,6 @@ export default function Login() {
                 )}
               </button>
 
-              {/* Register Link */}
               <div className="text-center">
                 <p className="text-muted mb-0">
                   Don't have an account?{' '}

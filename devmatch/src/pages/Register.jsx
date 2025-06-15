@@ -11,7 +11,7 @@ export default function Register() {
     password: '',
     confirmPassword: '',
     role: '',
-    cv_url: '',
+    cv_file: null,
   });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -19,11 +19,19 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  const generateId = () => {
+    return Math.random().toString(36).substr(2, 4);
+  };
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    const { name, value, files } = e.target;
     
-    // Clear error when user starts typing
+    if (name === 'cv_file' && files) {
+      setForm({ ...form, [name]: files[0] });
+    } else {
+      setForm({ ...form, [name]: value });
+    }
+    
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
     }
@@ -31,7 +39,7 @@ export default function Register() {
       setApiError('');
     }
     
-    validateField(name, value);
+    validateField(name, files ? files[0] : value);
   };
 
   const validateField = (name, value) => {
@@ -39,14 +47,14 @@ export default function Register() {
     
     switch (name) {
       case 'name':
-        if (!value.trim()) {
+        if (!value || !value.toString().trim()) {
           error = 'Full name is required';
-        } else if (value.trim().length < 2) {
+        } else if (value.toString().trim().length < 2) {
           error = 'Name must be at least 2 characters';
         }
         break;
       case 'email':
-        if (!value.trim()) {
+        if (!value || !value.toString().trim()) {
           error = 'Email address is required';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
           error = 'Please enter a valid email address';
@@ -73,9 +81,19 @@ export default function Register() {
           error = 'Please select your role';
         }
         break;
+      case 'cv_file':
+        if (form.role === 'programmer' && value) {
+          const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+          if (!allowedTypes.includes(value.type)) {
+            error = 'Please upload a PDF or Word document';
+          } else if (value.size > 5 * 1024 * 1024) {
+            error = 'File size must be less than 5MB';
+          }
+        }
+        break;
     }
     
-    setErrors({ ...errors, [name]: error });
+    setErrors(prev => ({ ...prev, [name]: error }));
   };
 
   const handleBlur = (e) => {
@@ -88,26 +106,26 @@ export default function Register() {
     setApiError('');
     setIsLoading(true);
 
-    // Mark all fields as touched
     const newTouched = {};
     Object.keys(form).forEach(key => {
-      newTouched[key] = true;
+      if (key !== 'cv_file') {
+        newTouched[key] = true;
+      }
     });
     setTouched(newTouched);
 
-    // Validate all required fields
     let isValid = true;
     const newErrors = {};
     
-    ['name', 'email', 'password', 'confirmPassword', 'role'].forEach((field) => {
-      validateField(field, form[field]);
-      if (!form[field]) {
-        newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+    const requiredFields = ['name', 'email', 'password', 'confirmPassword', 'role'];
+    requiredFields.forEach((field) => {
+      if (!form[field] || (typeof form[field] === 'string' && !form[field].trim())) {
+        newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1).replace('confirmPassword', 'confirm password')} is required`;
         isValid = false;
       }
     });
 
-    if (form.password !== form.confirmPassword) {
+    if (form.password && form.confirmPassword && form.password !== form.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
       isValid = false;
     }
@@ -120,9 +138,8 @@ export default function Register() {
     }
 
     try {
-      // Check if email already exists
       const { data: existingUsers } = await axios.get(
-        `http://localhost:8000/users?email=${form.email}`
+        `http://localhost:8000/users?email=${encodeURIComponent(form.email)}`
       );
       
       if (existingUsers.length > 0) {
@@ -131,23 +148,31 @@ export default function Register() {
         return;
       }
 
-
-      //make editing in your code abanoub in here 
-
-
-
-
-
-      const newUser = {
-        ...form,
+      const userData = {
+        id: generateId(),
+        name: form.name.trim(),
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+        role: form.role,
+        cv_url: form.cv_file ? `uploads/${form.cv_file.name}` : '',
         refused: false,
         registration_date: new Date().toISOString(),
+        ...(form.role === 'recruiter' && {
+          isProfileComplete: false,
+          company_name: '',
+          company_description: '',
+          company_website: '',
+          company_size: '',
+          linkedin: '',
+          logo: null,
+          logo_url: '',
+          location: '',
+          founded_year: ''
+        })
       };
 
-      await axios.post('http://localhost:8000/users', newUser);
+      await axios.post('http://localhost:8000/users', userData);
       
-      // Success feedback
-      setApiError('');
       alert('🎉 Registration successful! Welcome to DevMatch!');
       navigate('/login');
     } catch (err) {
@@ -171,10 +196,7 @@ export default function Register() {
       <div className="container" style={{ maxWidth: '480px' }}>
         <div className="card shadow-lg border-0" style={{ borderRadius: '20px', overflow: 'hidden' }}>
           <div className="card-header text-center py-4" 
-               style={{ 
-                 backgroundColor: '#007bff',
-                 border: 'none'
-               }}>
+               style={{ backgroundColor: '#007bff', border: 'none' }}>
             <h2 className="text-white fw-bold mb-1">
               <i className="bi bi-rocket-takeoff me-2"></i>
               Join DevMatch
@@ -191,7 +213,6 @@ export default function Register() {
             )}
             
             <form onSubmit={handleSubmit} noValidate>
-              {/* Name Field */}
               <div className="mb-3">
                 <label htmlFor="name" className="form-label fw-semibold" style={{ color: '#007bff' }}>
                   <i className="bi bi-person me-1"></i> Full Name
@@ -199,16 +220,13 @@ export default function Register() {
                 <input
                   type="text"
                   name="name"
+                  id="name"
                   className={getFieldClass('name')}
                   placeholder="Enter your full name"
                   value={form.name}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  style={{ 
-                    borderRadius: '10px', 
-                    padding: '12px 16px',
-                    borderColor: touched.name && !errors.name && form.name ? '#007bff' : undefined
-                  }}
+                  style={{ borderRadius: '10px', padding: '12px 16px' }}
                 />
                 {touched.name && errors.name && (
                   <div className="text-danger small mt-1">
@@ -218,7 +236,6 @@ export default function Register() {
                 )}
               </div>
 
-              {/* Email Field */}
               <div className="mb-3">
                 <label htmlFor="email" className="form-label fw-semibold" style={{ color: '#007bff' }}>
                   <i className="bi bi-envelope me-1"></i> Email Address
@@ -226,16 +243,13 @@ export default function Register() {
                 <input
                   type="email"
                   name="email"
+                  id="email"
                   className={getFieldClass('email')}
                   placeholder="your@email.com"
                   value={form.email}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  style={{ 
-                    borderRadius: '10px', 
-                    padding: '12px 16px',
-                    borderColor: touched.email && !errors.email && form.email ? '#007bff' : undefined
-                  }}
+                  style={{ borderRadius: '10px', padding: '12px 16px' }}
                 />
                 {touched.email && errors.email && (
                   <div className="text-danger small mt-1">
@@ -245,7 +259,6 @@ export default function Register() {
                 )}
               </div>
 
-              {/* Password Field */}
               <div className="mb-3">
                 <label htmlFor="password" className="form-label fw-semibold" style={{ color: '#007bff' }}>
                   <i className="bi bi-lock me-1"></i> Password
@@ -253,16 +266,13 @@ export default function Register() {
                 <input
                   type="password"
                   name="password"
+                  id="password"
                   className={getFieldClass('password')}
                   placeholder="Create a strong password"
                   value={form.password}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  style={{ 
-                    borderRadius: '10px', 
-                    padding: '12px 16px',
-                    borderColor: touched.password && !errors.password && form.password ? '#007bff' : undefined
-                  }}
+                  style={{ borderRadius: '10px', padding: '12px 16px' }}
                 />
                 {touched.password && errors.password && (
                   <div className="text-danger small mt-1">
@@ -272,7 +282,6 @@ export default function Register() {
                 )}
               </div>
 
-              {/* Confirm Password Field */}
               <div className="mb-3">
                 <label htmlFor="confirmPassword" className="form-label fw-semibold" style={{ color: '#007bff' }}>
                   <i className="bi bi-shield-lock me-1"></i> Confirm Password
@@ -280,16 +289,13 @@ export default function Register() {
                 <input
                   type="password"
                   name="confirmPassword"
+                  id="confirmPassword"
                   className={getFieldClass('confirmPassword')}
                   placeholder="Confirm your password"
                   value={form.confirmPassword}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  style={{ 
-                    borderRadius: '10px', 
-                    padding: '12px 16px',
-                    borderColor: touched.confirmPassword && !errors.confirmPassword && form.confirmPassword ? '#007bff' : undefined
-                  }}
+                  style={{ borderRadius: '10px', padding: '12px 16px' }}
                 />
                 {touched.confirmPassword && errors.confirmPassword && (
                   <div className="text-danger small mt-1">
@@ -299,22 +305,18 @@ export default function Register() {
                 )}
               </div>
 
-              {/* Role Field */}
               <div className="mb-3">
                 <label htmlFor="role" className="form-label fw-semibold" style={{ color: '#007bff' }}>
                   <i className="bi bi-briefcase me-1"></i> I am a...
                 </label>
                 <select
                   name="role"
+                  id="role"
                   className={getFieldClass('role')}
                   value={form.role}
                   onChange={handleChange}
                   onBlur={handleBlur}
-                  style={{ 
-                    borderRadius: '10px', 
-                    padding: '12px 16px',
-                    borderColor: touched.role && !errors.role && form.role ? '#007bff' : undefined
-                  }}
+                  style={{ borderRadius: '10px', padding: '12px 16px' }}
                 >
                   <option value="">Select your role</option>
                   <option value="programmer">💻 Programmer/Developer</option>
@@ -328,24 +330,35 @@ export default function Register() {
                 )}
               </div>
 
-              {/* CV URL Field */}
-              <div className="mb-4">
-                <label htmlFor="cv_url" className="form-label fw-semibold" style={{ color: '#007bff' }}>
-                  <i className="bi bi-link-45deg me-1"></i> Portfolio/CV URL 
-                  <span className="text-muted small">(Optional)</span>
-                </label>
-                <input
-                  type="url"
-                  name="cv_url"
-                  className="form-control"
-                  placeholder="https://yourportfolio.com"
-                  value={form.cv_url}
-                  onChange={handleChange}
-                  style={{ borderRadius: '10px', padding: '12px 16px' }}
-                />
-              </div>
+              {form.role === 'programmer' && (
+                <div className="mb-4">
+                  <label htmlFor="cv_file" className="form-label fw-semibold" style={{ color: '#007bff' }}>
+                    <i className="bi bi-file-earmark-arrow-up me-1"></i> Upload CV/Resume 
+                    <span className="text-muted small">(Optional - PDF or Word)</span>
+                  </label>
+                  <input
+                    type="file"
+                    name="cv_file"
+                    id="cv_file"
+                    className={getFieldClass('cv_file')}
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    style={{ borderRadius: '10px', padding: '12px 16px' }}
+                  />
+                  {touched.cv_file && errors.cv_file && (
+                    <div className="text-danger small mt-1">
+                      <i className="bi bi-exclamation-circle me-1"></i>
+                      {errors.cv_file}
+                    </div>
+                  )}
+                  <div className="text-muted small mt-1">
+                    <i className="bi bi-info-circle me-1"></i>
+                    Supported formats: PDF, DOC, DOCX (max 5MB)
+                  </div>
+                </div>
+              )}
 
-              {/* Submit Button */}
               <button 
                 type="submit" 
                 className="btn w-100 py-3 fw-semibold text-white"
@@ -370,7 +383,6 @@ export default function Register() {
                 )}
               </button>
 
-              {/* Login Link */}
               <div className="text-center mt-4">
                 <p className="text-muted mb-0">
                   Already have an account?{' '}

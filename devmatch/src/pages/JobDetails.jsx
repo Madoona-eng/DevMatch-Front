@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
 
 export default function JobDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -21,6 +22,10 @@ export default function JobDetails() {
         setLoading(false);
       });
   }, [id]);
+
+  const handleApplyClick = () => {
+    navigate(`/jobs/${id}/apply`);
+  };
 
   if (loading) {
     return (
@@ -87,35 +92,15 @@ export default function JobDetails() {
                   </div>
                 </div>
 
-                <div className="row mb-4">
-                  <div className="col-md-6">
-                    <h5 className="text-primary">Posted Date</h5>
-                    <p className="text-muted">
-                      <i className="bi bi-calendar me-2"></i>
-                      {new Date(job.created_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </p>
-                  </div>
-                  <div className="col-md-6">
-                    <h5 className="text-primary">Posted Time</h5>
-                    <p className="text-muted">
-                      <i className="bi bi-clock me-2"></i>
-                      {new Date(job.created_at).toLocaleTimeString('en-US', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                  </div>
-                </div>
-
                 <div className="d-flex justify-content-between border-top pt-4">
                   <Link to="/jobs" className="btn btn-outline-primary">
                     <i className="bi bi-arrow-left me-2"></i>Back to Jobs
                   </Link>
-                  <button className="btn btn-primary px-4">
+                  <button 
+                    className="btn btn-primary px-4"
+                    onClick={handleApplyClick}
+                    disabled={job.status !== 'open'}
+                  >
                     <i className="bi bi-send me-2"></i>Apply Now
                   </button>
                 </div>

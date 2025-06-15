@@ -1,0 +1,56 @@
+/* src/pages/RecruiterDashboard.css */
+
+.nav-link.active {
+    background-color: rgba(0, 123, 255, 0.1);
+    border-left: 3px solid #007bff;
+}
+
+.nav-link:hover:not(.active) {
+    background-color: #f8f9fa;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    border-top: none;
+}
+
+.card {
+    border-radius: 0.5rem;
+}
+
+.card-header {
+    border-radius: 0.5rem 0.5rem 0 0 !important;
+}
+
+
+/* Additional styles for the new components */
+
+.application-details-header {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.candidate-avatar-lg {
+    width: 80px;
+    height: 80px;
+    background-color: #f8f9fa;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 2rem;
+}
+
+.status-badge-lg {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.cover-letter-container {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    white-space: pre-wrap;
+}
