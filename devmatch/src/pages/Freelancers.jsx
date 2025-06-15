@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Sidebar from './Sidebar';
 import FreelancerCard from './FreelancerCard';
@@ -18,8 +18,8 @@ function FreelancersPage() {
       });
   }, []);
 
-  // Now onSearch gets only location and selectedTechs
-  const handleSearch = (location, selectedTechs) => {
+  // Use useCallback to prevent infinite re-renders in Sidebar
+  const handleSearch = useCallback((location, selectedTechs) => {
     const result = freelancers.filter(user => {
       const matchesLocation = location
         ? user.location?.toLowerCase().includes(location.toLowerCase())
@@ -43,7 +43,7 @@ function FreelancersPage() {
     });
 
     setFiltered(result);
-  };
+  }, [freelancers]);
 
   return (
     <>

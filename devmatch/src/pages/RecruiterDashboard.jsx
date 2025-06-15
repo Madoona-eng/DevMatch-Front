@@ -13,6 +13,7 @@ export default function RecruiterDashboard() {
   const [activeTab, setActiveTab] = useState('profile');
   const [applications, setApplications] = useState([]);
   const [jobs, setJobs] = useState([]);
+  const [freelancers, setFreelancers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [form, setForm] = useState({
@@ -40,6 +41,10 @@ export default function RecruiterDashboard() {
         // Fetch recruiter's jobs
         const jobsRes = await axios.get(`http://localhost:8000/jobs?recruiter_id=${user.id}`);
         setJobs(jobsRes.data);
+
+        // Fetch all freelancers
+        const freelancersRes = await axios.get('http://localhost:8000/users');
+        setFreelancers(freelancersRes.data.filter(u => u.role === 'programmer'));
 
         // If on applications tab, fetch applications for these jobs
         if (activeTab === 'applications') {
@@ -545,6 +550,7 @@ export default function RecruiterDashboard() {
                         <tbody>
                           {applications.map(application => {
                             const job = jobs.find(j => j.id === application.job_id);
+                            const freelancer = freelancers.find(f => f.id === application.applicant_id);
                             return (
                               <tr key={application.id}>
                                 <td>
@@ -554,8 +560,12 @@ export default function RecruiterDashboard() {
                                       <i className="bi bi-person text-muted"></i>
                                     </div>
                                     <div>
-                                      <div className="fw-semibold">Candidate #{application.applicant_id.substring(0, 4)}</div>
-                                      <small className="text-muted">View CV</small>
+                                      <div className="fw-semibold">{freelancer ? freelancer.name : `Candidate #${application.applicant_id.substring(0, 4)}`}</div>
+                                      {freelancer && freelancer.cv_url ? (
+                                        <a href={freelancer.cv_url} target="_blank" rel="noopener noreferrer" className="text-primary small">View CV</a>
+                                      ) : (
+                                        <small className="text-muted">No CV</small>
+                                      )}
                                     </div>
                                   </div>
                                 </td>

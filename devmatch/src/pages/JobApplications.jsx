@@ -23,14 +23,21 @@ export default function JobApplications() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [jobRes, applicationsRes, usersRes] = await Promise.all([
-          axios.get(`http://localhost:8000/jobs/${jobId}`),
-          axios.get(`http://localhost:8000/applications?job_id=${jobId}`),
-          axios.get('http://localhost:8000/users')
-        ]);
         
+        // Fetch the specific job first to verify it belongs to this recruiter
+        const jobRes = await axios.get(`http://localhost:8000/jobs/${jobId}`);
+        if (jobRes.data.recruiter_id !== user.id) {
+          navigate('/');
+          return;
+        }
         setJob(jobRes.data);
+
+        // Fetch applications only for this specific job
+        const applicationsRes = await axios.get(`http://localhost:8000/applications?job_id=${jobId}`);
         setApplications(applicationsRes.data);
+
+        // Fetch all users to get applicant details
+        const usersRes = await axios.get('http://localhost:8000/users');
         setUsers(usersRes.data);
       } catch (err) {
         console.error('Error fetching data:', err);
