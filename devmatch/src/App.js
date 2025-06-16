@@ -25,6 +25,7 @@ import CompleteProfile from "./pages/CompleteProfile";
 import JobApplications from "./pages/JobApplications";
 import ApplicationDetails from "./pages/ApplicationDetails";
 import JobApplication from "./pages/JobApplication";
+import JobApplicationForm from "./pages/JobApplicationForm";
 
 // Components & Stores
 import { useAuthStore } from "./store/useAuthStore";
@@ -68,7 +69,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/jobs" element={<JobsPage />} />
           <Route path="/jobs/:id" element={<JobDetails />} />
-          <Route path="/jobs/:id/apply" element={<JobApplication />} />
+          <Route path="/jobs/:id/apply" element={<JobApplicationForm />} />
           <Route path="/recruiter-dashboard" element={<RecruiterDashboard />} />
           <Route path="/post-job" element={<PostJob />} />
           <Route path="/complete-profile" element={<CompleteProfile />} />

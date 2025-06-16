@@ -38,6 +38,23 @@ export default function RecruiterDashboard() {
     const fetchData = async () => {
       try {
         setLoading(true);
+
+        // Fetch company profile data
+        if (activeTab === 'profile') {
+          const userRes = await axios.get(`http://localhost:8000/users/${user.id}`);
+          const userData = userRes.data;
+          setForm({
+            company_name: userData.company_name || '',
+            company_description: userData.company_description || '',
+            company_website: userData.company_website || '',
+            company_size: userData.company_size || '',
+            linkedin: userData.linkedin || '',
+            logo_url: userData.logo_url || '',
+            location: userData.location || '',
+            founded_year: userData.founded_year || ''
+          });
+        }
+
         // Fetch recruiter's jobs
         const jobsRes = await axios.get(`http://localhost:8000/jobs?recruiter_id=${user.id}`);
         setJobs(jobsRes.data);
@@ -46,7 +63,7 @@ export default function RecruiterDashboard() {
         const freelancersRes = await axios.get('http://localhost:8000/users');
         setFreelancers(freelancersRes.data.filter(u => u.role === 'programmer'));
 
-        // If on applications tab, fetch applications for these jobs
+        // Fetch applications for recruiter's jobs if on applications tab
         if (activeTab === 'applications') {
           const jobIds = jobsRes.data.map(job => job.id);
           if (jobIds.length > 0) {
@@ -54,20 +71,10 @@ export default function RecruiterDashboard() {
               `http://localhost:8000/applications?${jobIds.map(id => `job_id=${id}`).join('&')}`
             );
             setApplications(applicationsRes.data);
+          } else {
+            setApplications([]);
           }
         }
-
-        // Set form data from user profile
-        setForm({
-          company_name: user.company_name || '',
-          company_description: user.company_description || '',
-          company_website: user.company_website || '',
-          company_size: user.company_size || '',
-          linkedin: user.linkedin || '',
-          logo_url: user.logo_url || '',
-          location: user.location || '',
-          founded_year: user.founded_year || ''
-        });
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load data. Please try again.');
@@ -548,67 +555,80 @@ export default function RecruiterDashboard() {
                           </tr>
                         </thead>
                         <tbody>
-                          {applications.map(application => {
-                            const job = jobs.find(j => j.id === application.job_id);
-                            const freelancer = freelancers.find(f => f.id === application.applicant_id);
-                            return (
-                              <tr key={application.id}>
-                                <td>
-                                  <div className="d-flex align-items-center">
-                                    <div className="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" 
-                                         style={{ width: '36px', height: '36px' }}>
-                                      <i className="bi bi-person text-muted"></i>
+                          {applications
+                            .filter(application => {
+                              const jobExists = jobs.some(j => j.id === application.job_id || j.job_id === application.job_id);
+                              const candidateExists = freelancers.some(f => f.id === application.applicant_id);
+                              return jobExists && candidateExists;
+                            })
+                            .map(application => {
+                              const job = jobs.find(j => j.id === application.job_id || j.job_id === application.job_id);
+                              const freelancer = freelancers.find(f => f.id === application.applicant_id);
+                              return (
+                                <tr key={application.id}>
+                                  <td>
+                                    <div className="d-flex align-items-center">
+                                      <div className="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" 
+                                           style={{ width: '36px', height: '36px' }}>
+                                        <i className="bi bi-person text-muted"></i>
+                                      </div>
+                                      <div>
+                                        <div className="fw-semibold">{freelancer ? freelancer.name : 'Candidate Deleted'}</div>
+                                        {freelancer && freelancer.cv_url ? (
+                                          <a 
+                                            href={encodeURI(freelancer.cv_url.startsWith('http') ? freelancer.cv_url : `http://localhost:8000/${freelancer.cv_url}`)} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="text-primary small"
+                                          >
+                                            View CV
+                                          </a>
+                                        ) : (
+                                          <small className="text-muted">No CV</small>
+                                        )}
+                                      </div>
                                     </div>
-                                    <div>
-                                      <div className="fw-semibold">{freelancer ? freelancer.name : `Candidate #${application.applicant_id.substring(0, 4)}`}</div>
-                                      {freelancer && freelancer.cv_url ? (
-                                        <a href={freelancer.cv_url} target="_blank" rel="noopener noreferrer" className="text-primary small">View CV</a>
-                                      ) : (
-                                        <small className="text-muted">No CV</small>
-                                      )}
+                                  </td>
+                                  <td>{job?.title}</td>
+                                  <td>
+                                    {new Date(application.applied_at).toLocaleDateString()}
+                                  </td>
+                                  <td>
+                                    <span className={`badge ${
+                                      application.status === 'pending' ? 'bg-warning text-dark' :
+                                      application.status === 'accepted' ? 'bg-success' :
+                                      'bg-danger'
+                                    }`}>
+                                      {application.status}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <div className="d-flex gap-2">
+                                      <button 
+                                        className="btn btn-sm btn-outline-success"
+                                        onClick={() => updateApplicationStatus(application.id, 'accepted')}
+                                        disabled={application.status === 'accepted'}
+                                      >
+                                        <i className="bi bi-check"></i>
+                                      </button>
+                                      <button 
+                                        className="btn btn-sm btn-outline-danger"
+                                        onClick={() => updateApplicationStatus(application.id, 'rejected')}
+                                        disabled={application.status === 'rejected'}
+                                      >
+                                        <i className="bi bi-x"></i>
+                                      </button>
+                                      <Link 
+                                        to={`/recruiter-dashboard/applications/${application.id}`}
+                                        className="btn btn-sm btn-outline-primary"
+                                      >
+                                        <i className="bi bi-eye"></i>
+                                      </Link>
                                     </div>
-                                  </div>
-                                </td>
-                                <td>{job?.title || 'Job not found'}</td>
-                                <td>
-                                  {new Date(application.applied_at).toLocaleDateString()}
-                                </td>
-                                <td>
-                                  <span className={`badge ${
-                                    application.status === 'pending' ? 'bg-warning text-dark' :
-                                    application.status === 'accepted' ? 'bg-success' :
-                                    'bg-danger'
-                                  }`}>
-                                    {application.status}
-                                  </span>
-                                </td>
-                                <td>
-                                  <div className="d-flex gap-2">
-                                    <button 
-                                      className="btn btn-sm btn-outline-success"
-                                      onClick={() => updateApplicationStatus(application.id, 'accepted')}
-                                      disabled={application.status === 'accepted'}
-                                    >
-                                      <i className="bi bi-check"></i>
-                                    </button>
-                                    <button 
-                                      className="btn btn-sm btn-outline-danger"
-                                      onClick={() => updateApplicationStatus(application.id, 'rejected')}
-                                      disabled={application.status === 'rejected'}
-                                    >
-                                      <i className="bi bi-x"></i>
-                                    </button>
-                                    <Link 
-                                      to={`/recruiter-dashboard/applications/${application.id}`}
-                                      className="btn btn-sm btn-outline-primary"
-                                    >
-                                      <i className="bi bi-eye"></i>
-                                    </Link>
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })}
+                                  </td>
+                                </tr>
+                              );
+                            })}
                         </tbody>
                       </table>
                     </div>
