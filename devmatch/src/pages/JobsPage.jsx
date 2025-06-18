@@ -2,8 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar'; // Adjust the path if needed
+import { useAuthStore } from '../store/useAuthStore';
 
 export default function JobsPage() {
+  const { authUser } = useAuthStore();
+  const isRecruiter = authUser?.role === 'recruiter';
+
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -74,12 +78,14 @@ export default function JobsPage() {
                       <i className="bi bi-clock me-1"></i>
                       {new Date(job.created_at).toLocaleDateString()}
                     </small>
-                    <Link 
-                      to={`/jobs/${job.id}`} 
-                      className="btn btn-sm btn-primary px-3"
-                    >
-                      <i className="bi bi-eye me-1"></i> View Details
-                    </Link>
+                    <div>
+                      <Link 
+                        to={`/jobs/${job.id}`} 
+                        className="btn btn-sm btn-primary px-3 me-2"
+                      >
+                        <i className="bi bi-eye me-1"></i> View Details
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>

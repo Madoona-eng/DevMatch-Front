@@ -32,12 +32,13 @@ import { useThemeStore } from "./store/useThemeStore";
 import { AuthProvider } from "./pages/AuthContext";
 
 function App() {
-  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  const { authUser, checkAuth, isCheckingAuth, initializeMockAuth } = useAuthStore();
   const { theme } = useThemeStore();
 
   useEffect(() => {
+    initializeMockAuth(); // Ensure mock auth data exists
     checkAuth();
-  }, [checkAuth]);
+  }, [checkAuth, initializeMockAuth]);
 
   if (isCheckingAuth && !authUser) {
     return (

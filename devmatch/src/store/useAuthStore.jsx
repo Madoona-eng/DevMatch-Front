@@ -17,12 +17,33 @@ export const useAuthStore = create((set, get) => ({
 
   checkAuth: async () => {
     try {
-      const res = await axiosInstance.get("/auth/check");
-
-      set({ authUser: res.data });
-      get().connectSocket();
+      // Simulate backend check using localStorage or mock db.json
+      let mockAuthData = null;
+      try {
+        mockAuthData = JSON.parse(localStorage.getItem("authUser"));
+      } catch {
+        mockAuthData = null;
+      }
+      // If no role, default to programmer
+      if (mockAuthData && typeof mockAuthData === 'object') {
+        if (!mockAuthData.role) mockAuthData.role = 'programmer';
+        set({ authUser: mockAuthData });
+        localStorage.setItem("authUser", JSON.stringify(mockAuthData));
+        console.log("Authenticated using mock data.");
+      } else {
+        // fallback: auto-initialize mock user if missing
+        mockAuthData = {
+          id: 1,
+          name: "Mock User",
+          email: "mockuser@example.com",
+          role: "programmer"
+        };
+        localStorage.setItem("authUser", JSON.stringify(mockAuthData));
+        set({ authUser: mockAuthData });
+        console.log("Mock authentication data auto-initialized and authenticated.");
+      }
     } catch (error) {
-      console.log("Error in checkAuth:", error);
+      console.error("Error in checkAuth (mock):", error.message);
       set({ authUser: null });
     } finally {
       set({ isCheckingAuth: false });
@@ -102,5 +123,18 @@ export const useAuthStore = create((set, get) => ({
   },
   disconnectSocket: () => {
     if (get().socket?.connected) get().socket.disconnect();
+  },
+
+  initializeMockAuth: () => {
+    const mockAuthData = {
+      id: 1,
+      name: "Mock User",
+      email: "mockuser@example.com",
+    };
+
+    if (!localStorage.getItem("authUser")) {
+      localStorage.setItem("authUser", JSON.stringify(mockAuthData));
+      console.log("Mock authentication data initialized.");
+    }
   },
 }));
