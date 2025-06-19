@@ -192,6 +192,26 @@
         "NodeJS"
       ],
       "image": "https://raw.githubusercontent.com/abanoub1234/kkkk/refs/heads/main/3%20(1).jpg"
+    },
+    {
+      "id": "a3w3",
+      "name": "samuel",
+      "email": "samuel@gmail.com",
+      "password": "Samuel@12345",
+      "role": "recruiter",
+      "cv_url": "",
+      "refused": false,
+      "registration_date": "2025-06-19T12:49:46.167Z",
+      "isProfileComplete": false,
+      "company_name": "",
+      "company_description": "",
+      "company_website": "",
+      "company_size": "",
+      "linkedin": "",
+      "logo": null,
+      "logo_url": "",
+      "location": "",
+      "founded_year": ""
     }
   ],
   "jobs": [
