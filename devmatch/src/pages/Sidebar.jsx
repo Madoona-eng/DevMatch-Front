@@ -9,30 +9,13 @@ function Sidebar({ onSearch }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('http://localhost:8000/users')
+    axios.get('http://localhost:5000/api/users/technologies')
       .then(response => {
-        const users = response.data;
-
-        const techSet = new Set();
-        users.forEach(user => {
-          if (user.technology) {
-            let techArray = [];
-            if (typeof user.technology === 'string') {
-              techArray = user.technology
-                .split(',')
-                .map(t => t.trim().toLowerCase());
-            } else if (Array.isArray(user.technology)) {
-              techArray = user.technology.map(t => t.trim().toLowerCase());
-            }
-            techArray.forEach(t => techSet.add(t));
-          }
-        });
-
-        setAllTechnologies(Array.from(techSet));
+        setAllTechnologies(response.data.map(t => t.toLowerCase()));
         setLoading(false);
       })
       .catch(error => {
-        console.error("Failed to fetch users:", error);
+        console.error("Failed to fetch technologies:", error);
         setLoading(false);
       });
   }, []);
@@ -46,7 +29,6 @@ function Sidebar({ onSearch }) {
     );
   };
 
-  // Call onSearch whenever location or selectedTechnologies change
   useEffect(() => {
     onSearch(location, selectedTechnologies);
   }, [location, selectedTechnologies, onSearch]);
@@ -59,7 +41,7 @@ function Sidebar({ onSearch }) {
         <Form.Label>Location</Form.Label>
         <Form.Control
           type="text"
-          placeholder="e.g., Minya"
+          placeholder="e.g., Cairo"
           value={location}
           onChange={e => setLocation(e.target.value)}
         />

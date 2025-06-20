@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, Badge, Button, Row, Col, Image } from 'react-bootstrap';
 import { FaMapMarkerAlt, FaLaptopCode, FaBriefcase } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 function FreelancerCard({ user }) {
   return (
@@ -54,7 +55,8 @@ function FreelancerCard({ user }) {
 
             {/* View Profile Button */}
             <Button
-              href={`/FreelancerProfile/${user.id}`} // or any routing logic
+              as={Link}
+              to={`/FreelancerProfile/${user.id || user._id || ''}`}
               variant="primary"
               size="sm"
               className="mt-2"

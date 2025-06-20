@@ -20,7 +20,7 @@ const FreelancerProfile = () => {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:8000/users/${id}`)
+      .get(`http://localhost:5000/api/users/${id}`)
       .then((response) => setUser(response.data))
       .catch((error) => console.error('Error fetching user:', error));
   }, [id]);
@@ -33,6 +33,10 @@ const FreelancerProfile = () => {
     //   .then(res => console.log(res.data))
     //   .catch(err => console.error(err));
   };
+
+  if (!id) {
+    return <p className="text-center my-5 text-danger">No user ID provided in the URL. Please select a freelancer from the list.</p>;
+  }
 
   if (!user)
     return <p className="text-center my-5">Loading user profile...</p>;

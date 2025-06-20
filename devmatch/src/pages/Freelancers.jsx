@@ -10,11 +10,13 @@ function FreelancersPage() {
   const [filtered, setFiltered] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:8000/users')
+    axios.get('http://localhost:5000/api/users/freelancers')
       .then(res => {
-        const onlyFreelancers = res.data.filter(user => user.role === 'programmer');
-        setFreelancers(onlyFreelancers);
-        setFiltered(onlyFreelancers);
+        setFreelancers(res.data);
+        setFiltered(res.data);
+      })
+      .catch(error => {
+        console.error('Failed to fetch freelancers:', error);
       });
   }, []);
 
