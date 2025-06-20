@@ -12,7 +12,7 @@ export default function JobApplications() {
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [users, setUsers] = useState([]);
+  const [freelancers, setFreelancers] = useState([]);
 
   useEffect(() => {
     if (!user || user.role !== 'recruiter') {
@@ -23,22 +23,27 @@ export default function JobApplications() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
-        // Fetch the specific job first to verify it belongs to this recruiter
+
+        // Fetch the specific job
         const jobRes = await axios.get(`http://localhost:8000/jobs/${jobId}`);
-        if (jobRes.data.recruiter_id !== user.id) {
-          navigate('/');
-          return;
-        }
-        setJob(jobRes.data);
+        const job = jobRes.data;
+        setJob(job);
 
-        // Fetch applications only for this specific job
+        // Fetch applications for this job
         const applicationsRes = await axios.get(`http://localhost:8000/applications?job_id=${jobId}`);
-        setApplications(applicationsRes.data);
+        const applications = applicationsRes.data;
 
-        // Fetch all users to get applicant details
-        const usersRes = await axios.get('http://localhost:8000/users');
-        setUsers(usersRes.data);
+        // Fetch all freelancers
+        const freelancersRes = await axios.get('http://localhost:8000/users');
+        const freelancers = freelancersRes.data.filter(u => u.role === 'programmer');
+
+        // Filter applications to include only those with existing candidates
+        const validApplications = applications.filter(application => 
+          freelancers.some(f => f.id === application.applicant_id)
+        );
+
+        setApplications(validApplications);
+        setFreelancers(freelancers);
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load applications. Please try again.');
@@ -48,7 +53,7 @@ export default function JobApplications() {
     };
 
     fetchData();
-  }, [jobId, user, navigate]);
+  }, [user, navigate, jobId]);
 
   const updateApplicationStatus = async (applicationId, status) => {
     try {
@@ -92,7 +97,7 @@ export default function JobApplications() {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>
           <i className="bi bi-people me-2"></i>
-          Applications for: {job?.title}
+          Applications for: {job?.title || 'Job not found'}
         </h2>
         <button className="btn btn-outline-primary" onClick={() => navigate(-1)}>
           <i className="bi bi-arrow-left me-1"></i>
@@ -121,7 +126,7 @@ export default function JobApplications() {
                 </thead>
                 <tbody>
                   {applications.map(application => {
-                    const freelancer = users.find(u => u.id === application.applicant_id);
+                    const freelancer = freelancers.find(f => f.id === application.applicant_id);
                     return (
                       <tr key={application.id}>
                         <td>
@@ -131,8 +136,12 @@ export default function JobApplications() {
                               <i className="bi bi-person text-muted"></i>
                             </div>
                             <div>
-                              <div className="fw-semibold">{freelancer ? freelancer.name : `Candidate #${application.applicant_id.substring(0, 4)}`}</div>
-                              <small className="text-muted">View CV</small>
+                              <div className="fw-semibold">{freelancer ? freelancer.name : 'Candidate Deleted'}</div>
+                              {freelancer && freelancer.cv_url ? (
+                                <a href={freelancer.cv_url} target="_blank" rel="noopener noreferrer" className="text-primary small">View CV</a>
+                              ) : (
+                                <small className="text-muted">No CV</small>
+                              )}
                             </div>
                           </div>
                         </td>

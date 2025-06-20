@@ -12,10 +12,8 @@ export default function JobApplication() {
   const [error, setError] = useState(null);
   const [application, setApplication] = useState({
     cover_letter: '',
-    cv_file: null,
-    cv_filename: ''
+    cv_url: ''
   });
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
@@ -39,35 +37,6 @@ export default function JobApplication() {
     setApplication(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // File validation
-    const validTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    ];
-    
-    if (!validTypes.includes(file.type)) {
-      setError('Please upload a PDF or Word document (PDF, DOC, DOCX)');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setError('File size should be less than 5MB');
-      return;
-    }
-
-    setApplication(prev => ({
-      ...prev,
-      cv_file: file,
-      cv_filename: file.name
-    }));
-    setError(null);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -81,23 +50,17 @@ export default function JobApplication() {
       return;
     }
 
-    if (!application.cv_file) {
-      setError('Please upload your CV');
+    if (!application.cv_url.trim()) {
+      setError('Please enter your CV URL');
       return;
     }
 
     try {
-      // In a real app, you would upload the file to a server here
-      // For JSON Server, we'll simulate this by storing the file name
-      // and pretending we have a URL
-      const fakeFileUrl = `uploads/${application.cv_filename}`;
-      
-      // Submit application to JSON Server
       const applicationData = {
         job_id: id,
         applicant_id: user.id,
         cover_letter: application.cover_letter,
-        cv_file: application.cv_filename, // Store filename instead of URL
+        cv_url: application.cv_url,
         status: 'pending',
         applied_at: new Date().toISOString()
       };
@@ -198,28 +161,21 @@ export default function JobApplication() {
                 </div>
 
                 <div className="mb-4">
-                  <h5 className="text-primary mb-3">CV/Resume</h5>
+                  <h5 className="text-primary mb-3">CV/Resume (URL)</h5>
                   <div className="mb-3">
                     <input
-                      type="file"
+                      type="url"
                       className="form-control"
-                      id="cv_file"
-                      name="cv_file"
-                      onChange={handleFileChange}
-                      accept=".pdf,.doc,.docx"
+                      id="cv_url"
+                      name="cv_url"
+                      value={application.cv_url}
+                      onChange={handleChange}
+                      placeholder="https://your-cv-link.com"
                       required
                     />
                     <div className="form-text">
-                      Accepted formats: PDF, DOC, DOCX (Max 5MB)
+                      Please provide a public URL to your CV (Google Drive, Dropbox, etc.)
                     </div>
-                    {application.cv_filename && (
-                      <div className="mt-2">
-                        <span className="badge bg-light text-dark">
-                          <i className="bi bi-file-earmark me-1"></i>
-                          {application.cv_filename}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
 

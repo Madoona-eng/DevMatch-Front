@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from '../components/Navbar';
+import { useAuthStore } from '../store/useAuthStore';
 
 export default function JobDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { authUser } = useAuthStore();
+  const isRecruiter = authUser?.role === 'recruiter';
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -99,10 +102,15 @@ export default function JobDetails() {
                   <button 
                     className="btn btn-primary px-4"
                     onClick={handleApplyClick}
-                    disabled={job.status !== 'open'}
+                    disabled={isRecruiter || job.status !== 'open'}
                   >
                     <i className="bi bi-send me-2"></i>Apply Now
                   </button>
+                  {isRecruiter && (
+                    <div className="text-danger ms-3 align-self-center" style={{fontWeight:'bold'}}>
+                      Recruiters cannot apply for jobs
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

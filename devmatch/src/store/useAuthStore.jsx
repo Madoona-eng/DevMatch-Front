@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { axiosInstance } from "../lib/axios.js";
+import { axiosInstance } from "../lib/axios.jsx";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 
@@ -13,7 +13,6 @@ export const useAuthStore = create((set, get) => ({
   isCheckingAuth: true,
   onlineUsers: [],
   socket: null,
-
 
 
   signup: async (data) => {
@@ -95,4 +94,21 @@ export const useAuthStore = create((set, get) => ({
   disconnectSocket: () => {
     if (get().socket?.connected) get().socket.disconnect();
   },
+<<<<<<< HEAD:devmatch/src/store/useAuthStore.js
 }));
+=======
+
+  initializeMockAuth: () => {
+    const mockAuthData = {
+      id: 1,
+      name: "Mock User",
+      email: "mockuser@example.com",
+    };
+
+    if (!localStorage.getItem("authUser")) {
+      localStorage.setItem("authUser", JSON.stringify(mockAuthData));
+      console.log("Mock authentication data initialized.");
+    }
+  },
+}));
+>>>>>>> origin/last-update-recruiter:devmatch/src/store/useAuthStore.jsx
