@@ -1,5 +1,8 @@
 import React, { useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faComments } from '@fortawesome/free-solid-svg-icons'; // chat icon
+
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../pages/AuthContext';
 
@@ -39,6 +42,13 @@ export default function Navbar() {
   <Link to="/jobs" className="nav-link">Jobs</Link>
 </li>            <li className="nav-item"><a className="nav-link" href="#">Portfolios</a></li>
 <li className="nav-item"><a className="nav-link" href="/chat">Community</a></li>
+<li className="nav-item">
+  <a className="nav-link" href="/privatechats">
+    <FontAwesomeIcon icon={faComments} style={{ color: 'blue', marginRight: '8px' }} />
+    
+  </a>
+</li>
+
 <li className="nav-item">
   <a className="nav-link" href="/Freelancers">Freelancers</a>
 </li>
