@@ -1,8 +1,21 @@
 import axios from "axios";
 
 export const axiosInstance = axios.create({
-  baseURL: process.env.NODE_ENV === "development"
-    ? "http://localhost:5001/api"
-    : "http://localhost:5001/api",
+  baseURL: "http://localhost:5000/api",
   withCredentials: true,
 });
+
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Removed the response interceptor that deletes token and redirects on 401

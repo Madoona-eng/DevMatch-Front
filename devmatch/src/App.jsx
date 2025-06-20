@@ -1,6 +1,5 @@
-import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { Loader } from "lucide-react";
+
 import PrivateChatsLayout from "../src/layout/PrivateChatsLayout";
 
 // Pages
@@ -27,25 +26,11 @@ import ApplicationDetails from "./pages/ApplicationDetails";
 import JobApplication from "./pages/JobApplication";
 
 // Components & Stores
-import { useAuthStore } from "./store/useAuthStore";
-import { useThemeStore } from "./store/useThemeStore";
 import { AuthProvider } from "./pages/AuthContext";
+import { useThemeStore } from "./store/useThemeStore";
 
 function App() {
-  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
   const { theme } = useThemeStore();
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  if (isCheckingAuth && !authUser) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader className="size-10 animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <AuthProvider>
@@ -53,12 +38,12 @@ function App() {
         <Routes>
           {/* Private Chat Routes */}
           <Route path="/privatechats" element={<PrivateChatsLayout />}>
-            <Route index element={authUser ? <Navigate to="home" /> : <Navigate to="login" />} />
-            <Route path="home" element={authUser ? <HomePagechat /> : <Navigate to="login" />} />
-            <Route path="signup" element={!authUser ? <SignUpPagechat /> : <Navigate to="home" />} />
-            <Route path="login" element={!authUser ? <LoginPagechat /> : <Navigate to="home" />} />
+            <Route index element={<Navigate to="home" />} />
+            <Route path="home" element={<HomePagechat /> } />
+            <Route path="signup" element={<SignUpPagechat />} />
+            <Route path="login" element={ <LoginPagechat />} />
             <Route path="settings" element={<SettingsPagechat />} />
-            <Route path="profile" element={authUser ? <ProfilePagechat /> : <Navigate to="login" />} />
+            <Route path="profile" element={<ProfilePagechat />} />
           </Route>
 
           {/* Public Routes */}

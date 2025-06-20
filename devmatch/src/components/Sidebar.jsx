@@ -6,12 +6,20 @@ import { Users } from "lucide-react";
 
 const Sidebar = () => {
   const { getUsers, users, selectedUser, setSelectedUser, isUsersLoading } = useChatStore();
-
   const { onlineUsers } = useAuthStore();
   const [showOnlineOnly, setShowOnlineOnly] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    getUsers();
+    (async () => {
+      try {
+        await getUsers();
+        setLoadError("");
+      } catch (err) {
+        console.error("Sidebar getUsers error:", err);
+        setLoadError("Failed to load users. Check your backend/API and browser console for details.");
+      }
+    })();
   }, [getUsers]);
 
   const filteredUsers = showOnlineOnly
@@ -19,6 +27,11 @@ const Sidebar = () => {
     : users;
 
   if (isUsersLoading) return <SidebarSkeleton />;
+  if (loadError) return (
+    <aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
+      <div className="p-5 text-red-600">{loadError}</div>
+    </aside>
+  );
 
   return (
     <aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">

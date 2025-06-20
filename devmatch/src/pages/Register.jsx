@@ -11,7 +11,7 @@ export default function Register() {
     password: '',
     confirmPassword: '',
     role: '',
-    cv_file: null,
+    cv_url: '',
   });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -24,22 +24,15 @@ export default function Register() {
   };
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    
-    if (name === 'cv_file' && files) {
-      setForm({ ...form, [name]: files[0] });
-    } else {
-      setForm({ ...form, [name]: value });
-    }
-    
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
     }
     if (apiError) {
       setApiError('');
     }
-    
-    validateField(name, files ? files[0] : value);
+    validateField(name, value);
   };
 
   const validateField = (name, value) => {
@@ -81,13 +74,16 @@ export default function Register() {
           error = 'Please select your role';
         }
         break;
-      case 'cv_file':
+      case 'cv_url':
         if (form.role === 'programmer' && value) {
-          const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-          if (!allowedTypes.includes(value.type)) {
-            error = 'Please upload a PDF or Word document';
-          } else if (value.size > 5 * 1024 * 1024) {
-            error = 'File size must be less than 5MB';
+          const urlPattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+          '((([a-z\\d]([a-z\\d-]*[a-z\\d])?)\\.)+[a-z]{2,}|' + // domain name
+          'localhost|' + // localhost
+          '\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|' + // IP address
+          '\\[?[a-fA-F0-9]*:[a-fA-F0-9:%.~+\\/?#&=]*\\]?)' + // IPv6
+          '(\\:\\d+)?(\\/[-a-z\\d%@_.~+\\/?#&=]*)?$','i'); // port and path
+          if (!urlPattern.test(value)) {
+            error = 'Please enter a valid URL';
           }
         }
         break;
@@ -101,87 +97,74 @@ export default function Register() {
     setTouched({ ...touched, [name]: true });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setApiError('');
-    setIsLoading(true);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setApiError('');
+  setIsLoading(true);
 
-    const newTouched = {};
-    Object.keys(form).forEach(key => {
-      if (key !== 'cv_file') {
-        newTouched[key] = true;
-      }
-    });
-    setTouched(newTouched);
+  const newTouched = {};
+  Object.keys(form).forEach(key => {
+    if (key !== 'cv_file') {
+      newTouched[key] = true;
+    }
+  });
+  setTouched(newTouched);
 
-    let isValid = true;
-    const newErrors = {};
-    
-    const requiredFields = ['name', 'email', 'password', 'confirmPassword', 'role'];
-    requiredFields.forEach((field) => {
-      if (!form[field] || (typeof form[field] === 'string' && !form[field].trim())) {
-        newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1).replace('confirmPassword', 'confirm password')} is required`;
-        isValid = false;
-      }
-    });
-
-    if (form.password && form.confirmPassword && form.password !== form.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+  let isValid = true;
+  const newErrors = {};
+  const requiredFields = ['name', 'email', 'password', 'confirmPassword', 'role'];
+  requiredFields.forEach((field) => {
+    if (!form[field] || (typeof form[field] === 'string' && !form[field].trim())) {
+      newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1).replace('confirmPassword', 'confirm password')} is required`;
       isValid = false;
     }
-
-    setErrors(newErrors);
-    
-    if (!isValid) {
-      setIsLoading(false);
-      return;
-    }
-
+  });
+  if (form.password && form.confirmPassword && form.password !== form.confirmPassword) {
+    newErrors.confirmPassword = 'Passwords do not match';
+    isValid = false;
+  }
+  // Extra validation for programmer cv_url
+  if (form.role === 'programmer' && form.cv_url) {
     try {
-      const { data: existingUsers } = await axios.get(
-        `http://localhost:8000/users?email=${encodeURIComponent(form.email)}`
-      );
-      
-      if (existingUsers.length > 0) {
-        setApiError('This email is already registered. Please use a different email or try logging in.');
-        setIsLoading(false);
-        return;
-      }
-
-      const userData = {
-        id: generateId(),
-        name: form.name.trim(),
-        email: form.email.trim().toLowerCase(),
-        password: form.password,
-        role: form.role,
-        cv_url: form.cv_file ? `uploads/${form.cv_file.name}` : '',
-        refused: false,
-        registration_date: new Date().toISOString(),
-        ...(form.role === 'recruiter' && {
-          isProfileComplete: false,
-          company_name: '',
-          company_description: '',
-          company_website: '',
-          company_size: '',
-          linkedin: '',
-          logo: null,
-          logo_url: '',
-          location: '',
-          founded_year: ''
-        })
-      };
-
-      await axios.post('http://localhost:8000/users', userData);
-      
-      alert('🎉 Registration successful! Welcome to DevMatch!');
-      navigate('/login');
-    } catch (err) {
-      console.error('Registration error:', err);
-      setApiError('Registration failed. Please check your connection and try again.');
-    } finally {
-      setIsLoading(false);
+      new URL(form.cv_url);
+    } catch (e) {
+      newErrors.cv_url = 'Please enter a valid URL (starting with http:// or https://)';
+      isValid = false;
     }
-  };
+  }
+  // Never send cv_url for recruiter
+  if (form.role === 'recruiter') {
+    form.cv_url = '';
+  }
+  setErrors(newErrors);
+  if (!isValid) {
+    setIsLoading(false);
+    return;
+  }
+
+  try {
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
+      role: form.role,
+    };
+    if (form.role === 'programmer' && form.cv_url) {
+      payload.cv_url = form.cv_url;
+    }
+    await axios.post('http://localhost:5000/api/auth/signup', payload);
+    alert('🎉 Registration successful! Welcome to DevMatch!');
+    navigate('/login');
+  } catch (err) {
+    console.error('Registration error:', err);
+    setApiError(
+      err?.response?.data?.message || 'Registration failed. Please check your connection and try again.'
+    );
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const getFieldClass = (fieldName) => {
     if (!touched[fieldName]) return 'form-control';
@@ -332,29 +315,30 @@ export default function Register() {
 
               {form.role === 'programmer' && (
                 <div className="mb-4">
-                  <label htmlFor="cv_file" className="form-label fw-semibold" style={{ color: '#007bff' }}>
-                    <i className="bi bi-file-earmark-arrow-up me-1"></i> Upload CV/Resume 
-                    <span className="text-muted small">(Optional - PDF or Word)</span>
+                  <label htmlFor="cv_url" className="form-label fw-semibold" style={{ color: '#007bff' }}>
+                    <i className="bi bi-link-45deg me-1"></i> CV/Resume URL
+                    <span className="text-muted small"> (Optional - must be a valid URL)</span>
                   </label>
                   <input
-                    type="file"
-                    name="cv_file"
-                    id="cv_file"
-                    className={getFieldClass('cv_file')}
-                    accept=".pdf,.doc,.docx"
+                    type="url"
+                    name="cv_url"
+                    id="cv_url"
+                    className={getFieldClass('cv_url')}
+                    placeholder="https://your-cv-link.com/cv.pdf"
+                    value={form.cv_url || ''}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     style={{ borderRadius: '10px', padding: '12px 16px' }}
                   />
-                  {touched.cv_file && errors.cv_file && (
+                  {touched.cv_url && errors.cv_url && (
                     <div className="text-danger small mt-1">
                       <i className="bi bi-exclamation-circle me-1"></i>
-                      {errors.cv_file}
+                      {errors.cv_url}
                     </div>
                   )}
                   <div className="text-muted small mt-1">
                     <i className="bi bi-info-circle me-1"></i>
-                    Supported formats: PDF, DOC, DOCX (max 5MB)
+                    Paste a public link to your CV/Resume (PDF, DOC, etc.)
                   </div>
                 </div>
               )}

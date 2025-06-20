@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Image, Alert } from 'react-bootstrap';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 import { useNavigate } from 'react-router-dom';
 
 function ProfileCompletionForm() {
@@ -64,7 +64,8 @@ function ProfileCompletionForm() {
     if (!validateForm()) return;
 
     try {
-      const existingUserRes = await axios.get(`http://localhost:8000/users/${userId}`);
+      // Use shared axios instance and correct API route
+      const existingUserRes = await axiosInstance.get(`/users/${userId}`);
       const existingUser = existingUserRes.data;
 
       const getBase64 = (file) =>
@@ -92,12 +93,19 @@ function ProfileCompletionForm() {
         image: imageBase64,
       };
 
-      await axios.put(`http://localhost:8000/users/${userId}`, updatedUser);
-
+      // Use shared axios instance for PUT
+      const response = await axiosInstance.put(`/users/${userId}`, updatedUser);
+      // Optionally update localStorage with new user
+      localStorage.setItem('devmatch_user', JSON.stringify(response.data));
       setSuccess('Profile updated successfully!');
       setTimeout(() => navigate('/'), 1000);
     } catch (err) {
-      setError('Failed to update profile. Please try again.');
+      // Show backend error message if available
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Failed to update profile. Please try again.');
+      }
       console.error(err);
     }
   };

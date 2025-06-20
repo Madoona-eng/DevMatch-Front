@@ -75,7 +75,6 @@ export default function Login() {
 
     let isValid = true;
     const newErrors = {};
-    
     Object.keys(form).forEach((field) => {
       validateField(field, form[field]);
       if (!form[field]) {
@@ -84,47 +83,27 @@ export default function Login() {
       }
     });
     setErrors(newErrors);
-    
     if (!isValid) {
       setIsLoading(false);
       return;
     }
 
     try {
-      const { data: users } = await axios.get('http://localhost:8000/users');
-      
-      const user = users.find(u => 
-        u.email.toLowerCase() === form.email.toLowerCase() && 
-        u.password === form.password
-      );
-      
-      if (!user) {
-        setApiError('Invalid email or password. Please check your credentials and try again.');
-        setIsLoading(false);
-        return;
-      }
-      
+      const response = await axios.post('http://localhost:5000/api/auth/login', {
+        email: form.email,
+        password: form.password,
+      });
+      const { user, token } = response.data;
+      localStorage.setItem('token', token);
       login(user);
-
       if (user.role === 'recruiter') {
-        if (!user.isProfileComplete || 
-            !user.company_name || 
-            !user.company_description || 
-            !user.company_website) {
+        if (!user.isProfileComplete) {
           navigate('/complete-profile');
         } else {
           navigate('/');
         }
       } else if (user.role === 'programmer') {
-        // Check if freelancer profile is complete
-        const isProfileComplete =
-          user.aboutMe &&
-          user.location &&
-          user.experience &&
-          user.skills &&
-          user.technology &&
-          user.image;
-        if (!isProfileComplete) {
+        if (!user.isProfileComplete) {
           navigate('/CompleteFreelancerProfile');
         } else {
           navigate('/');
@@ -133,9 +112,11 @@ export default function Login() {
         navigate('/');
       }
     } catch (err) {
-      console.error('Login error:', err);
-      setApiError('Connection error. Please try again.');
-    } finally {
+      setApiError(
+        (err.response?.data?.errors && err.response.data.errors[0]) ||
+        err.response?.data?.message ||
+        (err.response?.data ? JSON.stringify(err.response.data) : 'Login failed. Please check your connection and try again.')
+      );
       setIsLoading(false);
     }
   };
