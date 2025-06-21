@@ -5,7 +5,7 @@ export const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-axiosInstance.interceptors.request.use(
+  axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -19,3 +19,11 @@ axiosInstance.interceptors.request.use(
 );
 
 // Removed the response interceptor that deletes token and redirects on 401
+
+// Broadcast Messages
+export const createBroadcastMessage = (text) => axiosInstance.post('/messagesbroadcast/creatmassagebroadcast', { text });
+export const getBroadcastMessage = (id) => axiosInstance.get(`/messagesbroadcast/getmassagebroadcast/${id}`);
+export const getAllBroadcastMessages = () => axiosInstance.get('/messagesbroadcast/getallmassagesbroadcast');
+
+// Comments
+export const createComment = (messageId, text) => axiosInstance.post(`/comments/${messageId}`, { text });

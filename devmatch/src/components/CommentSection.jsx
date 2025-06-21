@@ -1,10 +1,10 @@
 import { Card, Button, Form } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
 import { useState } from 'react';
 import { FiX, FiSend } from 'react-icons/fi';
-import {InputGroup} from 'react-bootstrap';
+import { InputGroup } from 'react-bootstrap';
+
 export default function CommentSection({ comments, onAddComment, onClose }) {
   const [commentText, setCommentText] = useState('');
 
@@ -18,12 +18,12 @@ export default function CommentSection({ comments, onAddComment, onClose }) {
 
   return (
     <Card className="h-100 glass-card">
-      <Card.Header className="d-flex justify-content-between align-items-center bg-dark text-white border-0">
+      <Card.Header className="d-flex justify-content-between align-items-center bg-primary text-white border-0">
         <Card.Title className="mb-0">Comments</Card.Title>
         <Button 
           variant="link" 
           onClick={onClose}
-          className="text-black p-0"
+          className="text-white p-0"
         >
           <FiX size={20} />
         </Button>
@@ -32,16 +32,16 @@ export default function CommentSection({ comments, onAddComment, onClose }) {
       <Card.Body className="comments-body">
         {comments.length === 0 ? (
           <div className="text-center py-4">
-            <p className="text-black">No comments yet</p>
+            <p className="text-muted">No comments yet</p>
             <small className="text-muted">Be the first to comment</small>
           </div>
         ) : (
           comments.map(comment => (
             <motion.div
-              key={comment.id}
+              key={comment._id}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="mb-3 p-3 bg-dark rounded"
+              className="mb-3 p-3 bg-light rounded"
             >
               <div className="d-flex align-items-start">
                 <img 
@@ -56,7 +56,7 @@ export default function CommentSection({ comments, onAddComment, onClose }) {
                     <strong className="text-primary">{comment.user}</strong>
                     <small className="text-muted">{comment.time}</small>
                   </div>
-                  <p className="mb-0 text-light">{comment.text}</p>
+                  <p className="mb-0 text-dark">{comment.text}</p>
                 </div>
               </div>
             </motion.div>
@@ -73,7 +73,7 @@ export default function CommentSection({ comments, onAddComment, onClose }) {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="Write a comment..."
-              className="border-0 bg-dark text-white"
+              className="border-0 bg-light"
               style={{ resize: 'none' }}
             />
             <Button 
