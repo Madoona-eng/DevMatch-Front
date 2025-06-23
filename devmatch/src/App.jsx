@@ -25,6 +25,7 @@ import CompleteProfile from "./pages/CompleteProfile";
 import JobApplications from "./pages/JobApplications";
 import ApplicationDetails from "./pages/ApplicationDetails";
 import JobApplication from "./pages/JobApplication";
+import PaymentPage from "./pages/PaymentPage";
 
 // Components & Stores
 import { AuthProvider } from "./pages/AuthContext";
@@ -69,6 +70,7 @@ function App() {
           <Route path="/Freelancers" element={<Freelancers />} />
           <Route path="/CompleteFreelancerProfile" element={<CompleteFreelancerProfile />} />
           <Route path="/FreelancerProfile/:id" element={<FreelancerProfile />} />
+          <Route path="/payment" element={<PaymentPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

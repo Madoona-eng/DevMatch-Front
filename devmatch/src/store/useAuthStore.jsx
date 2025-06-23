@@ -109,7 +109,7 @@ export const useAuthStore = create((set, get) => ({
       get().connectSocket();
     } catch (error) {
       set({ authUser: null });
-      localStorage.removeItem("token");
+      // localStorage.removeItem("token"); // <-- Do not remove token on refresh
     } finally {
       set({ isCheckingAuth: false });
     }
