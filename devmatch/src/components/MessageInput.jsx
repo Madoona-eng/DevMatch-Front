@@ -1,7 +1,6 @@
 import { Form, InputGroup, Button } from 'react-bootstrap';
 import { motion } from 'framer-motion';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
 import { FiSend } from 'react-icons/fi';
 import { useState } from 'react';
 
@@ -28,8 +27,8 @@ export default function MessageInput({ onSend }) {
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type your message..."
-            className="border-0 bg-transparent text-black"
+            placeholder="Type your broadcast message..."
+            className="border-0 bg-transparent text-dark"
             style={{ outline: 'none', boxShadow: 'none' }}
           />
           <Button 
