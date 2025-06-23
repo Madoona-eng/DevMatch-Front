@@ -15,19 +15,18 @@ export default function CompleteProfile() {
     company_website: '',
     company_size: '',
     linkedin: '',
-    logo_url: '',
     location: '',
     founded_year: ''
   });
 
   const [preview, setPreview] = useState('');
+  const [logoFile, setLogoFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [token, setToken] = useState('');
 
   useEffect(() => {
-    // Retrieve token from localStorage
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
       setToken(storedToken);
@@ -42,7 +41,6 @@ export default function CompleteProfile() {
         company_website: user.company_website || '',
         company_size: user.company_size || '',
         linkedin: user.linkedin || '',
-        logo_url: user.image || '',
         location: user.location || '',
         founded_year: user.founded_year || ''
       });
@@ -63,11 +61,13 @@ export default function CompleteProfile() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result;
-        setForm(prev => ({ ...prev, logo_url: base64String }));
-        setPreview(base64String);
+        setPreview(reader.result);
       };
       reader.readAsDataURL(file);
+      setLogoFile(file);
+    } else {
+      setPreview('');
+      setLogoFile(null);
     }
   };
 
@@ -115,26 +115,24 @@ export default function CompleteProfile() {
 
     setLoading(true);
     try {
-      const updateData = {
-        company_name: form.company_name,
-        company_description: form.company_description,
-        company_website: form.company_website,
-        company_size: form.company_size,
-        founded_year: form.founded_year,
-        linkedin: form.linkedin,
-        image: form.logo_url, // renamed for backend
-        location: form.location
-      };
-      // Debug: log data and token
-      console.log('Submitting updateData:', updateData);
-      console.log('Using token:', token || (user && user.token));
+      const formData = new FormData();
+      
+      // Append only expected fields
+      Object.entries(form).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+      
+      if (logoFile) {
+        formData.append('image', logoFile);
+      }
+
       const response = await axios.post(
         'http://localhost:5000/api/profile/recruiter',
-        updateData,
+        formData,
         {
           headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token || (user && user.token)}` // Use token from localStorage or fallback to user.token
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token || (user?.token || '')}`
           }
         }
       );
@@ -147,15 +145,32 @@ export default function CompleteProfile() {
 
       login(updatedUser);
       alert('Profile completed successfully! 🎉');
-      navigate('/');
+      navigate('/'); // Navigate to home after completion
     } catch (err) {
       console.error('Error updating profile:', err);
+      let errorMessage = 'Failed to save profile. Please try again.';
+      
       if (err.response) {
         console.error('Backend error response:', err.response.data);
+        
+        // Handle different error formats
+        if (Array.isArray(err.response.data?.errors)) {
+          errorMessage = err.response.data.errors.map(e => e.msg || e).join(', ');
+        } else if (typeof err.response.data?.message === 'string') {
+          errorMessage = err.response.data.message;
+          
+          // Handle Multer errors
+          if (errorMessage.includes('Only image files are allowed')) {
+            errorMessage = 'Invalid file type. Please upload an image (JPEG, PNG, GIF).';
+          } else if (errorMessage.includes('File too large')) {
+            errorMessage = 'File is too large. Maximum size is 5MB.';
+          }
+        }
       }
+      
       setErrors(prev => ({
         ...prev,
-        server: 'Failed to save profile. Please try again.'
+        server: errorMessage
       }));
     } finally {
       setLoading(false);
@@ -205,11 +220,24 @@ export default function CompleteProfile() {
                           <i className="fas fa-camera text-muted" style={{ fontSize: '2rem' }}></i>
                         )}
                       </div>
-                      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="d-none" />
-                      <button type="button" className="btn btn-sm btn-outline-primary rounded-pill" onClick={triggerFileInput}>
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        onChange={handleFileChange} 
+                        accept="image/*" 
+                        className="d-none" 
+                      />
+                      <button 
+                        type="button" 
+                        className="btn btn-sm btn-outline-primary rounded-pill" 
+                        onClick={triggerFileInput}
+                      >
                         <i className="fas fa-upload me-2"></i>
                         {preview ? 'Change Logo' : 'Upload Logo'}
                       </button>
+                      <div className="text-muted mt-2 small">
+                        Supported formats: JPG, PNG, GIF • Max size: 5MB
+                      </div>
                     </div>
                   </div>
 
@@ -225,16 +253,35 @@ export default function CompleteProfile() {
                           <i className={icon}></i>
                         </span>
                         {type === 'textarea' ? (
-                          <textarea className={`form-control ${errors[name] ? 'is-invalid border-start-0' : 'border-start-0'}`} name={name} value={form[name]} onChange={handleChange} placeholder={placeholder} rows="3" />
+                          <textarea 
+                            className={`form-control ${errors[name] ? 'is-invalid border-start-0' : 'border-start-0'}`} 
+                            name={name} 
+                            value={form[name]} 
+                            onChange={handleChange} 
+                            placeholder={placeholder} 
+                            rows="3" 
+                          />
                         ) : type === 'select' ? (
-                          <select className={`form-control ${errors[name] ? 'is-invalid border-start-0' : 'border-start-0'}`} name={name} value={form[name]} onChange={handleChange}>
+                          <select 
+                            className={`form-control ${errors[name] ? 'is-invalid border-start-0' : 'border-start-0'}`} 
+                            name={name} 
+                            value={form[name]} 
+                            onChange={handleChange}
+                          >
                             <option value="">Select {label.toLowerCase()}...</option>
                             {options.map(option => (
                               <option key={option} value={option}>{option}</option>
                             ))}
                           </select>
                         ) : (
-                          <input type={type} className={`form-control ${errors[name] ? 'is-invalid border-start-0' : 'border-start-0'}`} name={name} value={form[name]} onChange={handleChange} placeholder={placeholder} />
+                          <input 
+                            type={type} 
+                            className={`form-control ${errors[name] ? 'is-invalid border-start-0' : 'border-start-0'}`} 
+                            name={name} 
+                            value={form[name]} 
+                            onChange={handleChange} 
+                            placeholder={placeholder} 
+                          />
                         )}
                       </div>
                       {errors[name] && (
@@ -248,7 +295,12 @@ export default function CompleteProfile() {
                 </div>
 
                 <div className="text-center mt-5">
-                  <button type="submit" className="btn btn-primary px-5 py-3 rounded-pill fw-semibold" disabled={loading || isSubmitting} style={{ minWidth: '200px' }}>
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary px-5 py-3 rounded-pill fw-semibold" 
+                    disabled={loading || isSubmitting} 
+                    style={{ minWidth: '200px' }}
+                  >
                     {loading ? (
                       <>
                         <span className="spinner-border spinner-border-sm me-2" role="status"></span>

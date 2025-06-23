@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 import { useAuth } from './AuthContext';
 
 export default function JobApplication() {
@@ -19,7 +19,7 @@ export default function JobApplication() {
   useEffect(() => {
     const fetchJobDetails = async () => {
       try {
-        const res = await axios.get(`http://localhost:8000/jobs/${id}`);
+        const res = await axiosInstance.get(`/jobs/${id}`);
         setJob(res.data);
       } catch (err) {
         console.error('Error fetching job:', err);
@@ -56,16 +56,11 @@ export default function JobApplication() {
     }
 
     try {
-      const applicationData = {
+      await axiosInstance.post('/applications/', {
         job_id: id,
-        applicant_id: user.id,
         cover_letter: application.cover_letter,
-        cv_url: application.cv_url,
-        status: 'pending',
-        applied_at: new Date().toISOString()
-      };
-
-      await axios.post('http://localhost:8000/applications', applicationData);
+        cv_url: application.cv_url
+      });
       
       setSuccess(true);
       setTimeout(() => navigate('/jobs'), 2000);

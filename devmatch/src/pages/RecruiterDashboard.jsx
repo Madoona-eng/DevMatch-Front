@@ -1,7 +1,7 @@
 // src/pages/RecruiterDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 import { useAuth } from './AuthContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -29,6 +29,15 @@ export default function RecruiterDashboard() {
   });
   const [editing, setEditing] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showJobModal, setShowJobModal] = useState(false);
+  const [jobForm, setJobForm] = useState({
+    title: '',
+    description: '',
+    specialization: '',
+    governorate: '',
+    status: 'open'
+  });
+  const [jobErrors, setJobErrors] = useState({});
 
   useEffect(() => {
     if (!user || user.role !== 'recruiter') {
@@ -42,39 +51,35 @@ export default function RecruiterDashboard() {
 
         // Fetch company profile data
         if (activeTab === 'profile') {
-          const userRes = await axios.get(`http://localhost:8000/users/${user.id}`);
-          const userData = userRes.data;
+          const userRes = await axiosInstance.get('/profile/recruiter');
+          const userData = userRes.data.user;
           setForm({
             company_name: userData.company_name || '',
             company_description: userData.company_description || '',
             company_website: userData.company_website || '',
             company_size: userData.company_size || '',
             linkedin: userData.linkedin || '',
-            logo_url: userData.logo_url || '',
+            logo_url: userData.image || '',
             location: userData.location || '',
             founded_year: userData.founded_year || ''
           });
         }
 
         // Fetch recruiter's jobs
-        const jobsRes = await axios.get(`http://localhost:8000/jobs?recruiter_id=${user.id}`);
-        setJobs(jobsRes.data);
+        const jobsRes = await axiosInstance.get('/jobs');
+        // Filter jobs by recruiter_id
+        const recruiterJobs = jobsRes.data.filter(job => job.recruiter_id === user.id || job.recruiter_id === user._id);
+        setJobs(recruiterJobs);
 
         // Fetch all freelancers
-        const freelancersRes = await axios.get('http://localhost:8000/users');
+        const freelancersRes = await axiosInstance.get('/users');
         setFreelancers(freelancersRes.data.filter(u => u.role === 'programmer'));
 
         // Fetch applications for recruiter's jobs if on applications tab
         if (activeTab === 'applications') {
-          const jobIds = jobsRes.data.map(job => job.id);
-          if (jobIds.length > 0) {
-            const applicationsRes = await axios.get(
-              `http://localhost:8000/applications?${jobIds.map(id => `job_id=${id}`).join('&')}`
-            );
-            setApplications(applicationsRes.data);
-          } else {
-            setApplications([]);
-          }
+          // Use the correct endpoint for all applications for this recruiter
+          const applicationsRes = await axiosInstance.get('/applications/recruiter');
+          setApplications(applicationsRes.data);
         }
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -92,6 +97,14 @@ export default function RecruiterDashboard() {
     setForm(prev => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleJobChange = (e) => {
+    const { name, value } = e.target;
+    setJobForm(prev => ({ ...prev, [name]: value }));
+    if (jobErrors[name]) {
+      setJobErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -124,14 +137,26 @@ export default function RecruiterDashboard() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const validateJobForm = () => {
+    const newErrors = {};
+    
+    if (!jobForm.title.trim()) newErrors.title = 'Job title is required';
+    if (!jobForm.description.trim()) newErrors.description = 'Description is required';
+    if (!jobForm.specialization.trim()) newErrors.specialization = 'Specialization is required';
+    if (!jobForm.governorate.trim()) newErrors.governorate = 'Location is required';
+    
+    setJobErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
     try {
       setLoading(true);
-      const response = await axios.patch(
-        `http://localhost:8000/users/${user.id}`,
+      const response = await axiosInstance.put(
+        '/profile/recruiter',
         form
       );
 
@@ -139,13 +164,42 @@ export default function RecruiterDashboard() {
         ...user,
         ...form
       };
-      
       login(updatedUser);
       setEditing(false);
       alert('Profile updated successfully!');
     } catch (err) {
       console.error('Error updating profile:', err);
-      setError('Failed to update profile. Please try again.');
+      setError(
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to update profile. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleJobSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateJobForm()) return;
+
+    try {
+      setLoading(true);
+      const response = await axiosInstance.post('/jobs', jobForm);
+      
+      setJobs(prev => [...prev, response.data.job]);
+      setShowJobModal(false);
+      setJobForm({
+        title: '',
+        description: '',
+        specialization: '',
+        governorate: '',
+        status: 'open'
+      });
+      alert('Job posted successfully!');
+    } catch (err) {
+      console.error('Error posting job:', err);
+      setError('Failed to post job. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -165,11 +219,12 @@ export default function RecruiterDashboard() {
 
   const updateApplicationStatus = async (applicationId, status) => {
     try {
-      await axios.patch(
-        `http://localhost:8000/applications/${applicationId}`,
-        { status }
-      );
-      
+      if (status === 'accepted') {
+        await axiosInstance.put(`/applications/accept/${applicationId}`);
+      } else if (status === 'rejected') {
+        // If you have a reject endpoint, use it. Otherwise, fallback to a PATCH/PUT if supported.
+        await axiosInstance.put(`/applications/reject/${applicationId}`);
+      }
       setApplications(prev => prev.map(app => 
         app.id === applicationId ? { ...app, status } : app
       ));
@@ -181,6 +236,19 @@ export default function RecruiterDashboard() {
 
   const handleViewJobApplications = (jobId) => {
     navigate(`/recruiter-dashboard/jobs/${jobId}/applications`);
+  };
+
+  const handleDeleteJob = async (jobId) => {
+    try {
+      if (window.confirm('Are you sure you want to delete this job?')) {
+        await axiosInstance.delete(`/jobs/${jobId}`);
+        setJobs(prev => prev.filter(job => job._id !== jobId && job.id !== jobId));
+        alert('Job deleted successfully');
+      }
+    } catch (err) {
+      console.error('Error deleting job:', err);
+      setError('Failed to delete job');
+    }
   };
 
   if (loading && activeTab === 'profile' && !editing) {
@@ -245,15 +313,6 @@ export default function RecruiterDashboard() {
                       >
                         <i className="bi bi-person me-2"></i>
                         Company Profile
-                      </button>
-                    </li>
-                    <li className="nav-item">
-                      <button 
-                        className={`nav-link d-flex align-items-center ${activeTab === 'applications' ? 'active text-primary' : 'text-dark'}`}
-                        onClick={() => setActiveTab('applications')}
-                      >
-                        <i className="bi bi-people me-2"></i>
-                        Job Applications
                       </button>
                     </li>
                     <li className="nav-item">
@@ -518,128 +577,6 @@ export default function RecruiterDashboard() {
                 </div>
               )}
 
-              {/* Applications Tab */}
-              {activeTab === 'applications' && (
-                <div className="card border-0 shadow-sm">
-                  <div className="card-header bg-white border-bottom py-3">
-                    <h5 className="mb-0">
-                      <i className="bi bi-people me-2 text-primary"></i>
-                      Job Applications
-                    </h5>
-                  </div>
-
-                  <div className="card-body">
-                    {loading ? (
-                      <div className="text-center py-5">
-                        <div className="spinner-border text-primary" role="status">
-                          <span className="visually-hidden">Loading...</span>
-                        </div>
-                      </div>
-                    ) : applications.length === 0 ? (
-                      <div className="text-center py-5">
-                        <i className="bi bi-people text-muted" style={{ fontSize: '3rem' }}></i>
-                        <h5 className="mt-3">No applications yet</h5>
-                        <p className="text-muted">Applications for your posted jobs will appear here</p>
-                        <Link to="/post-job" className="btn btn-primary mt-2">
-                          <i className="bi bi-plus-circle me-1"></i>
-                          Post a Job
-                        </Link>
-                      </div>
-                    ) : (
-                      <div className="table-responsive">
-                        <table className="table table-hover align-middle">
-                          <thead>
-                            <tr>
-                              <th>Candidate</th>
-                              <th>Job Title</th>
-                              <th>Applied On</th>
-                              <th>Status</th>
-                              <th>Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {applications
-                              .filter(application => {
-                                const jobExists = jobs.some(j => j.id === application.job_id || j.job_id === application.job_id);
-                                const candidateExists = freelancers.some(f => f.id === application.applicant_id);
-                                return jobExists && candidateExists;
-                              })
-                              .map(application => {
-                                const job = jobs.find(j => j.id === application.job_id || j.job_id === application.job_id);
-                                const freelancer = freelancers.find(f => f.id === application.applicant_id);
-                                return (
-                                  <tr key={application.id}>
-                                    <td>
-                                      <div className="d-flex align-items-center">
-                                        <div className="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" 
-                                             style={{ width: '36px', height: '36px' }}>
-                                          <i className="bi bi-person text-muted"></i>
-                                        </div>
-                                        <div>
-                                          <div className="fw-semibold">{freelancer ? freelancer.name : 'Candidate Deleted'}</div>
-                                          {freelancer && freelancer.cv_url ? (
-                                            <a 
-                                              href={encodeURI(freelancer.cv_url.startsWith('http') ? freelancer.cv_url : `http://localhost:8000/${freelancer.cv_url}`)} 
-                                              target="_blank" 
-                                              rel="noopener noreferrer" 
-                                              className="text-primary small"
-                                            >
-                                              View CV
-                                            </a>
-                                          ) : (
-                                            <small className="text-muted">No CV</small>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </td>
-                                    <td>{job?.title}</td>
-                                    <td>
-                                      {new Date(application.applied_at).toLocaleDateString()}
-                                    </td>
-                                    <td>
-                                      <span className={`badge ${
-                                        application.status === 'pending' ? 'bg-warning text-dark' :
-                                        application.status === 'accepted' ? 'bg-success' :
-                                        'bg-danger'
-                                      }`}>
-                                        {application.status}
-                                      </span>
-                                    </td>
-                                    <td>
-                                      <div className="d-flex gap-2">
-                                        <button 
-                                          className="btn btn-sm btn-outline-success"
-                                          onClick={() => updateApplicationStatus(application.id, 'accepted')}
-                                          disabled={application.status === 'accepted'}
-                                        >
-                                          <i className="bi bi-check"></i>
-                                        </button>
-                                        <button 
-                                          className="btn btn-sm btn-outline-danger"
-                                          onClick={() => updateApplicationStatus(application.id, 'rejected')}
-                                          disabled={application.status === 'rejected'}
-                                        >
-                                          <i className="bi bi-x"></i>
-                                        </button>
-                                        <Link 
-                                          to={`/recruiter-dashboard/applications/${application.id}`}
-                                          className="btn btn-sm btn-outline-primary"
-                                        >
-                                          <i className="bi bi-eye"></i>
-                                        </Link>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
               {/* Jobs Tab */}
               {activeTab === 'jobs' && (
                 <div className="card border-0 shadow-sm">
@@ -649,10 +586,13 @@ export default function RecruiterDashboard() {
                         <i className="bi bi-file-earmark-text me-2 text-primary"></i>
                         Posted Jobs
                       </h5>
-                      <Link to="/post-job" className="btn btn-primary btn-sm">
+                      <button 
+                        className="btn btn-primary btn-sm"
+                        onClick={() => setShowJobModal(true)}
+                      >
                         <i className="bi bi-plus me-1"></i>
                         Post New Job
-                      </Link>
+                      </button>
                     </div>
                   </div>
 
@@ -668,19 +608,22 @@ export default function RecruiterDashboard() {
                         <i className="bi bi-file-earmark-text text-muted" style={{ fontSize: '3rem' }}></i>
                         <h5 className="mt-3">No jobs posted yet</h5>
                         <p className="text-muted">Your posted jobs will appear here</p>
-                        <Link to="/post-job" className="btn btn-primary mt-2">
+                        <button 
+                          className="btn btn-primary mt-2"
+                          onClick={() => setShowJobModal(true)}
+                        >
                           <i className="bi bi-plus-circle me-1"></i>
                           Post Your First Job
-                        </Link>
+                        </button>
                       </div>
                     ) : (
                       <div className="list-group list-group-flush">
                         {jobs.map(job => (
-                          <div key={job.id} className="list-group-item border-0 py-3">
+                          <div key={job._id || job.id} className="list-group-item border-0 py-3">
                             <div className="d-flex justify-content-between align-items-start">
                               <div>
                                 <h5 className="mb-1">
-                                  <Link to={`/jobs/${job.id}`} className="text-decoration-none">
+                                  <Link to={`/jobs/${job._id || job.id}`} className="text-decoration-none">
                                     {job.title}
                                   </Link>
                                 </h5>
@@ -690,20 +633,29 @@ export default function RecruiterDashboard() {
                                     <i className="bi bi-calendar me-1"></i>
                                     Posted: {new Date(job.created_at).toLocaleDateString()}
                                   </small>
-                                  <small className={`badge ${
-                                    job.status === 'open' ? 'bg-success' : 'bg-secondary'
-                                  }`}>
+                                  <small className={`badge ${job.status === 'open' ? 'bg-success' : 'bg-secondary'}`}>
                                     {job.status}
+                                  </small>
+                                  <small className="text-muted">
+                                    <i className="bi bi-geo-alt me-1"></i>
+                                    {job.governorate}
                                   </small>
                                 </div>
                               </div>
                               <div className="d-flex gap-2">
                                 <button 
                                   className="btn btn-sm btn-outline-primary"
-                                  onClick={() => handleViewJobApplications(job.id)}
+                                  onClick={() => handleViewJobApplications(job._id || job.id)}
                                 >
                                   <i className="bi bi-people me-1"></i>
                                   View Applications
+                                </button>
+                                <button 
+                                  className="btn btn-sm btn-outline-danger"
+                                  onClick={() => handleDeleteJob(job._id || job.id)}
+                                >
+                                  <i className="bi bi-trash me-1"></i>
+                                  Delete
                                 </button>
                               </div>
                             </div>
@@ -718,6 +670,130 @@ export default function RecruiterDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Job Posting Modal */}
+      {showJobModal && (
+        <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Post New Job</h5>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  onClick={() => {
+                    setShowJobModal(false);
+                    setJobErrors({});
+                  }}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <form onSubmit={handleJobSubmit}>
+                  <div className="row g-3">
+                    <div className="col-md-12">
+                      <label className="form-label">Job Title</label>
+                      <input
+                        type="text"
+                        className={`form-control ${jobErrors.title ? 'is-invalid' : ''}`}
+                        name="title"
+                        value={jobForm.title}
+                        onChange={handleJobChange}
+                        placeholder="e.g. Senior Frontend Developer"
+                      />
+                      {jobErrors.title && (
+                        <div className="invalid-feedback">{jobErrors.title}</div>
+                      )}
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Specialization</label>
+                      <input
+                        type="text"
+                        className={`form-control ${jobErrors.specialization ? 'is-invalid' : ''}`}
+                        name="specialization"
+                        value={jobForm.specialization}
+                        onChange={handleJobChange}
+                        placeholder="e.g. Web Development"
+                      />
+                      {jobErrors.specialization && (
+                        <div className="invalid-feedback">{jobErrors.specialization}</div>
+                      )}
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Location</label>
+                      <input
+                        type="text"
+                        className={`form-control ${jobErrors.governorate ? 'is-invalid' : ''}`}
+                        name="governorate"
+                        value={jobForm.governorate}
+                        onChange={handleJobChange}
+                        placeholder="e.g. Cairo, Egypt"
+                      />
+                      {jobErrors.governorate && (
+                        <div className="invalid-feedback">{jobErrors.governorate}</div>
+                      )}
+                    </div>
+
+                    <div className="col-12">
+                      <label className="form-label">Job Description</label>
+                      <textarea
+                        className={`form-control ${jobErrors.description ? 'is-invalid' : ''}`}
+                        name="description"
+                        value={jobForm.description}
+                        onChange={handleJobChange}
+                        rows="6"
+                        placeholder="Describe the job responsibilities, requirements, and benefits..."
+                      ></textarea>
+                      {jobErrors.description && (
+                        <div className="invalid-feedback">{jobErrors.description}</div>
+                      )}
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Status</label>
+                      <select
+                        className="form-control"
+                        name="status"
+                        value={jobForm.status}
+                        onChange={handleJobChange}
+                      >
+                        <option value="open">Open</option>
+                        <option value="closed">Closed</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="modal-footer mt-4">
+                    <button 
+                      type="button" 
+                      className="btn btn-secondary" 
+                      onClick={() => {
+                        setShowJobModal(false);
+                        setJobErrors({});
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button 
+                      type="submit" 
+                      className="btn btn-primary"
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                      ) : (
+                        <i className="bi bi-check-circle me-2"></i>
+                      )}
+                      Post Job
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 import Navbar from '../components/Navbar'; // Adjust the path if needed
 import { useAuthStore } from '../store/useAuthStore';
 
@@ -13,7 +13,7 @@ export default function JobsPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios.get('http://localhost:8000/jobs')
+    axiosInstance.get('/jobs')
       .then(res => {
         setJobs(res.data);
         setLoading(false);
@@ -57,35 +57,17 @@ export default function JobsPage() {
       ) : (
         <div className="row g-4">
           {jobs.map(job => (
-            <div key={job.id} className="col-lg-6">
-              <div className="card h-100 border-0 shadow-sm hover-shadow transition-all">
+            <div key={job._id || job.id} className="col-lg-6">
+              <div className="card h-100 border-0 shadow-sm">
                 <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-start mb-3">
-                    <h3 className="h5 card-title text-primary">{job.title}</h3>
-                    <span className={`badge ${job.status === 'open' ? 'bg-success' : 'bg-secondary'} rounded-pill`}>
-                      {job.status.toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="mb-4">
-                    <p className="card-text text-muted">
-                      {job.description.length > 120 
-                        ? `${job.description.substring(0, 120)}...` 
-                        : job.description}
-                    </p>
-                  </div>
-                  <div className="d-flex justify-content-between align-items-center">
-                    <small className="text-muted">
-                      <i className="bi bi-clock me-1"></i>
-                      {new Date(job.created_at).toLocaleDateString()}
-                    </small>
-                    <div>
-                      <Link 
-                        to={`/jobs/${job.id}`} 
-                        className="btn btn-sm btn-primary px-3 me-2"
-                      >
-                        <i className="bi bi-eye me-1"></i> View Details
-                      </Link>
-                    </div>
+                  <h5 className="card-title text-primary">{job.title}</h5>
+                  <p className="card-text text-muted mb-2">{job.specialization} | {job.governorate}</p>
+                  <p className="card-text">{job.description?.substring(0, 120)}...</p>
+                  <div className="d-flex justify-content-between align-items-center mt-3">
+                    <span className={`badge ${job.status === 'open' ? 'bg-success' : 'bg-secondary'}`}>{job.status}</span>
+                    <Link to={`/jobs/${job._id || job.id}`} className="btn btn-outline-primary btn-sm">
+                      View Details
+                    </Link>
                   </div>
                 </div>
               </div>

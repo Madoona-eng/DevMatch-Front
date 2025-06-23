@@ -1,7 +1,7 @@
 // src/pages/JobApplications.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 import { useAuth } from './AuthContext';
 
 export default function JobApplications() {
@@ -12,7 +12,6 @@ export default function JobApplications() {
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [freelancers, setFreelancers] = useState([]);
 
   useEffect(() => {
     if (!user || user.role !== 'recruiter') {
@@ -23,30 +22,31 @@ export default function JobApplications() {
     const fetchData = async () => {
       try {
         setLoading(true);
-
-        // Fetch the specific job
-        const jobRes = await axios.get(`http://localhost:8000/jobs/${jobId}`);
-        const job = jobRes.data;
+        let applicationsRes;
+        let job = null;
+        
+        if (jobId) {
+          // Fetch job details
+          const jobRes = await axiosInstance.get(`/jobs/${jobId}`);
+          job = jobRes.data;
+          // Fetch applications for this specific job
+          applicationsRes = await axiosInstance.get(`/applications/recruiter/${jobId}`);
+        } else {
+          // Fetch all applications for recruiter
+          applicationsRes = await axiosInstance.get('/applications/recruiter');
+        }
+        
         setJob(job);
-
-        // Fetch applications for this job
-        const applicationsRes = await axios.get(`http://localhost:8000/applications?job_id=${jobId}`);
-        const applications = applicationsRes.data;
-
-        // Fetch all freelancers
-        const freelancersRes = await axios.get('http://localhost:8000/users');
-        const freelancers = freelancersRes.data.filter(u => u.role === 'programmer');
-
-        // Filter applications to include only those with existing candidates
-        const validApplications = applications.filter(application => 
-          freelancers.some(f => f.id === application.applicant_id)
+        
+        // Filter out any applications with missing data
+        const validApplications = applicationsRes.data.filter(app => 
+          app && app._id && app.applicant_id && app.job_id
         );
-
+        
         setApplications(validApplications);
-        setFreelancers(freelancers);
       } catch (err) {
         console.error('Error fetching data:', err);
-        setError('Failed to load applications. Please try again.');
+        setError(err.response?.data?.message || 'Failed to load applications. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -57,17 +57,18 @@ export default function JobApplications() {
 
   const updateApplicationStatus = async (applicationId, status) => {
     try {
-      await axios.patch(
-        `http://localhost:8000/applications/${applicationId}`,
-        { status }
-      );
+      const endpoint = status === 'accepted' 
+        ? `/applications/accept/${applicationId}`
+        : `/applications/reject/${applicationId}`;
+      
+      await axiosInstance.put(endpoint);
       
       setApplications(prev => prev.map(app => 
-        app.id === applicationId ? { ...app, status } : app
+        app._id === applicationId ? { ...app, status } : app
       ));
     } catch (err) {
       console.error('Error updating application:', err);
-      setError('Failed to update application status');
+      setError(err.response?.data?.message || 'Failed to update application status');
     }
   };
 
@@ -97,19 +98,19 @@ export default function JobApplications() {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>
           <i className="bi bi-people me-2"></i>
-          Applications for: {job?.title || 'Job not found'}
+          {jobId ? `Applications for: ${job?.title || 'Job not found'}` : 'All Job Applications'}
         </h2>
         <button className="btn btn-outline-primary" onClick={() => navigate(-1)}>
           <i className="bi bi-arrow-left me-1"></i>
-          Back to Jobs
+          Back
         </button>
       </div>
 
       {applications.length === 0 ? (
         <div className="text-center py-5">
           <i className="bi bi-people text-muted" style={{ fontSize: '3rem' }}></i>
-          <h5 className="mt-3">No applications for this job yet</h5>
-          <p className="text-muted">Applications will appear here when candidates apply</p>
+          <h5 className="mt-3">No applications found</h5>
+          <p className="text-muted">Applications will appear here when candidates apply to your jobs</p>
         </div>
       ) : (
         <div className="card border-0 shadow-sm">
@@ -119,71 +120,83 @@ export default function JobApplications() {
                 <thead>
                   <tr>
                     <th>Candidate</th>
+                    <th>Job Title</th>
                     <th>Applied On</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {applications.map(application => {
-                    const freelancer = freelancers.find(f => f.id === application.applicant_id);
-                    return (
-                      <tr key={application.id}>
-                        <td>
-                          <div className="d-flex align-items-center">
-                            <div className="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" 
-                                 style={{ width: '36px', height: '36px' }}>
-                              <i className="bi bi-person text-muted"></i>
-                            </div>
-                            <div>
-                              <div className="fw-semibold">{freelancer ? freelancer.name : 'Candidate Deleted'}</div>
-                              {freelancer && freelancer.cv_url ? (
-                                <a href={freelancer.cv_url} target="_blank" rel="noopener noreferrer" className="text-primary small">View CV</a>
-                              ) : (
-                                <small className="text-muted">No CV</small>
-                              )}
-                            </div>
+                  {applications.map(application => (
+                    <tr key={application._id}>
+                      <td>
+                        <div className="d-flex align-items-center">
+                          <div className="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" 
+                               style={{ width: '36px', height: '36px' }}>
+                            <i className="bi bi-person text-muted"></i>
                           </div>
-                        </td>
-                        <td>
-                          {new Date(application.applied_at).toLocaleDateString()}
-                        </td>
-                        <td>
-                          <span className={`badge ${
-                            application.status === 'pending' ? 'bg-warning text-dark' :
-                            application.status === 'accepted' ? 'bg-success' :
-                            'bg-danger'
-                          }`}>
-                            {application.status}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="d-flex gap-2">
-                            <button 
-                              className="btn btn-sm btn-outline-success"
-                              onClick={() => updateApplicationStatus(application.id, 'accepted')}
-                              disabled={application.status === 'accepted'}
-                            >
-                              <i className="bi bi-check"></i>
-                            </button>
-                            <button 
-                              className="btn btn-sm btn-outline-danger"
-                              onClick={() => updateApplicationStatus(application.id, 'rejected')}
-                              disabled={application.status === 'rejected'}
-                            >
-                              <i className="bi bi-x"></i>
-                            </button>
-                            <Link 
-                              to={`/recruiter-dashboard/applications/${application.id}`}
+                          <div>
+                            <div className="fw-semibold">
+                              {application.applicant_id?.name || 'Candidate not found'}
+                            </div>
+                            {application.applicant_id?.cv_url ? (
+                              <a 
+                                href={application.applicant_id.cv_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="text-primary small"
+                              >
+                                View CV
+                              </a>
+                            ) : (
+                              <small className="text-muted">No CV</small>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+                      <td>{application.job_id?.title || 'Job not found'}</td>
+                      <td>
+                        {new Date(application.applied_at).toLocaleDateString()}
+                      </td>
+                      <td>
+                        <span className={`badge ${
+                          application.status === 'pending' ? 'bg-warning text-dark' :
+                          application.status === 'accepted' ? 'bg-success' :
+                          'bg-danger'
+                        }`}>
+                          {application.status}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="d-flex gap-2">
+                          <button
+                            className="btn btn-sm btn-outline-success"
+                            onClick={() => updateApplicationStatus(application._id, 'accepted')}
+                            disabled={application.status === 'accepted' || !application._id}
+                          >
+                            <i className="bi bi-check"></i>
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            onClick={() => updateApplicationStatus(application._id, 'rejected')}
+                            disabled={application.status === 'rejected' || !application._id}
+                          >
+                            <i className="bi bi-x"></i>
+                          </button>
+                          {application._id && typeof application._id === 'string' && application._id.length === 24 ? (
+                            <Link
+                              to={`/recruiter-dashboard/applications/${application._id}`}
                               className="btn btn-sm btn-outline-primary"
                             >
                               <i className="bi bi-eye"></i>
                             </Link>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                          ) : (
+                            <span className="text-muted small">Invalid ID</span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

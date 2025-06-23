@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 import Navbar from '../components/Navbar';
 import { useAuthStore } from '../store/useAuthStore';
 
@@ -9,22 +9,42 @@ export default function JobDetails() {
   const navigate = useNavigate();
   const { authUser } = useAuthStore();
   const isRecruiter = authUser?.role === 'recruiter';
+  const isProgrammer = authUser?.role === 'programmer';
+
   const [job, setJob] = useState(null);
+  const [hasApplied, setHasApplied] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios.get(`http://localhost:8000/jobs/${id}`)
-      .then(res => {
-        setJob(res.data);
+    const loadData = async () => {
+      try {
+        if (!id || typeof id !== 'string' || id.length !== 24) {
+          navigate('/jobs');
+          return;
+        }
+
+        const jobRes = await axiosInstance.get(`/jobs/${id}`);
+        setJob(jobRes.data);
+
+        if (isProgrammer) {
+          try {
+            const applyRes = await axiosInstance.get(`/applications/check/${id}`);
+            setHasApplied(applyRes.data?.hasApplied || false);
+          } catch (err) {
+            console.error('Application check error:', err);
+            setHasApplied(false);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading job:', err);
+        navigate('/jobs');
+      } finally {
         setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setError('Failed to load job details');
-        setLoading(false);
-      });
-  }, [id]);
+      }
+    };
+
+    loadData();
+  }, [id, isProgrammer, navigate]);
 
   const handleApplyClick = () => {
     navigate(`/jobs/${id}/apply`);
@@ -38,20 +58,6 @@ export default function JobDetails() {
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
-        </div>
-      </>
-    );
-  }
-
-  if (error) {
-    return (
-      <>
-        <Navbar />
-        <div className="container py-5 text-center">
-          <div className="alert alert-danger">{error}</div>
-          <Link to="/jobs" className="btn btn-primary mt-3">
-            Back to Jobs
-          </Link>
         </div>
       </>
     );
@@ -95,23 +101,37 @@ export default function JobDetails() {
                   </div>
                 </div>
 
-                <div className="d-flex justify-content-between border-top pt-4">
+                <div className="d-flex justify-content-between border-top pt-4 align-items-center">
                   <Link to="/jobs" className="btn btn-outline-primary">
                     <i className="bi bi-arrow-left me-2"></i>Back to Jobs
                   </Link>
-                  <button 
-                    className="btn btn-primary px-4"
-                    onClick={handleApplyClick}
-                    disabled={isRecruiter || job.status !== 'open'}
-                  >
-                    <i className="bi bi-send me-2"></i>Apply Now
-                  </button>
-                  {isRecruiter && (
-                    <div className="text-danger ms-3 align-self-center" style={{fontWeight:'bold'}}>
-                      Recruiters cannot apply for jobs
-                    </div>
-                  )}
+
+                  <div className="d-flex align-items-center">
+                    {isProgrammer && (
+                      hasApplied ? (
+                        <span className="text-success fw-bold">You Already Applied</span>
+                      ) : (
+                        <button
+                          className="btn btn-primary px-4"
+                          onClick={handleApplyClick}
+                          disabled={job.status !== 'open'}
+                        >
+                          <i className="bi bi-send me-2"></i>Apply Now
+                        </button>
+                      )
+                    )}
+
+                    {isRecruiter && (
+                      <button
+                        className="btn btn-primary px-4"
+                        disabled
+                      >
+                        <i className="bi bi-send me-2"></i>Apply Now
+                      </button>
+                    )}
+                  </div>
                 </div>
+
               </div>
             </div>
           </div>

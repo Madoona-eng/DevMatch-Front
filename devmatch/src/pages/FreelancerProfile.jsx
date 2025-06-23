@@ -28,10 +28,7 @@ const FreelancerProfile = () => {
   const handleFollowToggle = () => {
     setIsFollowing((prev) => !prev);
 
-    // Optional API call
-    // axios.post(`http://localhost:8000/users/${id}/follow`, { follow: !isFollowing })
-    //   .then(res => console.log(res.data))
-    //   .catch(err => console.error(err));
+    
   };
 
   if (!id) {

@@ -1,61 +1,61 @@
 // src/pages/ApplicationDetails.jsx
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
+import { axiosInstance } from '../lib/axios';
 import { useAuth } from './AuthContext';
 
 export default function ApplicationDetails() {
-  const { id } = useParams();
+  const params = useParams();
+  const applicationId = params.applicationId || params.id;
   const navigate = useNavigate();
   const { user } = useAuth();
   const [application, setApplication] = useState(null);
-  const [job, setJob] = useState(null);
-  const [candidate, setCandidate] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!user || user.role !== 'recruiter') {
-      navigate('/');
+    if (!user) {
+      navigate('/login');
       return;
     }
 
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const applicationRes = await axios.get(`http://localhost:8000/applications/${id}`);
-        setApplication(applicationRes.data);
-
-        const [jobRes, candidateRes] = await Promise.all([
-          axios.get(`http://localhost:8000/jobs/${applicationRes.data.job_id}`),
-          axios.get(`http://localhost:8000/users/${applicationRes.data.applicant_id}`)
-        ]);
-
-        setJob(jobRes.data);
-        setCandidate(candidateRes.data);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to load application details. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [id, user, navigate]);
+    axiosInstance.get(`/applications/${applicationId}`)
+      .then(res => {
+        const appData = res.data?.application || res.data;
+        if (appData && appData._id) {
+          setApplication(appData);
+        } else {
+          setError('Application not found or invalid response structure.');
+        }
+      })
+      .catch(err => {
+        let msg = 'Failed to load application details';
+        if (err.response?.status === 404) {
+          msg = 'Application not found.';
+        } else if (err.response?.status === 401) {
+          msg = 'Unauthorized. Please log in as a recruiter.';
+          setTimeout(() => navigate('/login'), 2000);
+        } else if (err.response?.data?.message) {
+          msg = err.response.data.message;
+        }
+        setError(msg);
+      })
+      .finally(() => setLoading(false));
+  }, [user, navigate, applicationId]);
 
   const updateApplicationStatus = async (status) => {
     try {
-      await axios.patch(
-        `http://localhost:8000/applications/${id}`,
-        { status }
-      );
-      
+      if (status === 'accepted') {
+        await axiosInstance.put(`/applications/accept/${applicationId}`);
+      } else if (status === 'rejected') {
+        await axiosInstance.put(`/applications/reject/${applicationId}`);
+      }
       setApplication(prev => ({ ...prev, status }));
       alert('Application status updated successfully!');
     } catch (err) {
-      console.error('Error updating application:', err);
-      setError('Failed to update application status');
+      let msg = 'Failed to update application status';
+      if (err.response?.data?.message) msg = err.response.data.message;
+      setError(msg);
     }
   };
 
@@ -71,7 +71,7 @@ export default function ApplicationDetails() {
 
   if (error) {
     return (
-      <div className="container py-5">
+      <div className="container py-5 text-center">
         <div className="alert alert-danger">{error}</div>
         <button className="btn btn-primary" onClick={() => navigate(-1)}>
           Go Back
@@ -79,6 +79,19 @@ export default function ApplicationDetails() {
       </div>
     );
   }
+
+  if (!application) {
+    return (
+      <div className="container py-5 text-center">
+        <div className="alert alert-danger">Application not found or invalid application ID.</div>
+        <button className="btn btn-primary" onClick={() => navigate(-1)}>
+          Go Back
+        </button>
+      </div>
+    );
+  }
+
+  const { applicant_id, job_id, cover_letter, status } = application;
 
   return (
     <div className="container py-4">
@@ -98,17 +111,15 @@ export default function ApplicationDetails() {
           <h5 className="mb-0">Job Information</h5>
         </div>
         <div className="card-body">
-          <h5>{job?.title}</h5>
-          <p className="text-muted">{job?.description}</p>
+          <h5>{job_id?.title}</h5>
+          <p className="text-muted">{job_id?.description}</p>
           <div className="d-flex gap-3">
             <small className="text-muted">
               <i className="bi bi-calendar me-1"></i>
-              Posted: {new Date(job?.created_at).toLocaleDateString()}
+              Posted: {job_id?.created_at ? new Date(job_id.created_at).toLocaleDateString() : 'N/A'}
             </small>
-            <small className={`badge ${
-              job?.status === 'open' ? 'bg-success' : 'bg-secondary'
-            }`}>
-              {job?.status}
+            <small className={`badge ${job_id?.status === 'open' ? 'bg-success' : 'bg-secondary'}`}>
+              {job_id?.status}
             </small>
           </div>
         </div>
@@ -122,25 +133,32 @@ export default function ApplicationDetails() {
             </div>
             <div className="card-body">
               <div className="d-flex align-items-center mb-3">
-                <div className="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" 
-                     style={{ width: '60px', height: '60px' }}>
-                  <i className="bi bi-person text-muted" style={{ fontSize: '1.5rem' }}></i>
+                <div className="bg-light rounded-circle d-flex align-items-center justify-content-center me-3 overflow-hidden"
+                  style={{ width: '60px', height: '60px' }}>
+                  {applicant_id?.image ? (
+                    <img 
+                      src={
+                        applicant_id.image.startsWith('data:image')
+                          ? applicant_id.image
+                          : `data:image/png;base64,${applicant_id.image}`
+                      }
+                      alt="Applicant"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <i className="bi bi-person text-muted" style={{ fontSize: '1.5rem' }}></i>
+                  )}
                 </div>
                 <div>
-                  <h5 className="mb-1">{candidate?.name}</h5>
-                  <p className="text-muted mb-0">{candidate?.email}</p>
+                  <h5 className="mb-1">{applicant_id?.name}</h5>
+                  <p className="text-muted mb-0">{applicant_id?.email}</p>
                 </div>
               </div>
-              
               <div className="mb-3">
                 <h6 className="text-muted mb-1">CV</h6>
-                {application?.cv_url ? (
-                  <a 
-                    href={application.cv_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="btn btn-outline-primary btn-sm"
-                  >
+                {applicant_id?.cv_url ? (
+                  <a href={applicant_id.cv_url} target="_blank" rel="noopener noreferrer"
+                    className="btn btn-outline-primary btn-sm">
                     <i className="bi bi-download me-1"></i>
                     Download CV
                   </a>
@@ -158,28 +176,28 @@ export default function ApplicationDetails() {
               <div className="d-flex justify-content-between align-items-center">
                 <h5 className="mb-0">Application Status</h5>
                 <span className={`badge ${
-                  application?.status === 'pending' ? 'bg-warning text-dark' :
-                  application?.status === 'accepted' ? 'bg-success' :
+                  status === 'pending' ? 'bg-warning text-dark' :
+                  status === 'accepted' ? 'bg-success' :
                   'bg-danger'
                 }`}>
-                  {application?.status}
+                  {status}
                 </span>
               </div>
             </div>
             <div className="card-body">
               <div className="d-flex gap-2 mb-3">
-                <button 
+                <button
                   className="btn btn-outline-success"
                   onClick={() => updateApplicationStatus('accepted')}
-                  disabled={application?.status === 'accepted'}
+                  disabled={status === 'accepted'}
                 >
                   <i className="bi bi-check me-1"></i>
                   Accept
                 </button>
-                <button 
+                <button
                   className="btn btn-outline-danger"
                   onClick={() => updateApplicationStatus('rejected')}
-                  disabled={application?.status === 'rejected'}
+                  disabled={status === 'rejected'}
                 >
                   <i className="bi bi-x me-1"></i>
                   Reject
@@ -195,9 +213,9 @@ export default function ApplicationDetails() {
           <h5 className="mb-0">Cover Letter</h5>
         </div>
         <div className="card-body">
-          {application?.cover_letter ? (
+          {cover_letter ? (
             <div className="bg-light p-3 rounded">
-              <p style={{ whiteSpace: 'pre-wrap' }}>{application.cover_letter}</p>
+              <p style={{ whiteSpace: 'pre-wrap' }}>{cover_letter}</p>
             </div>
           ) : (
             <p className="text-muted">No cover letter provided</p>
