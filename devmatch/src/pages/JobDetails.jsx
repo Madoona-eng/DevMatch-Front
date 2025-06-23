@@ -1,30 +1,65 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { axiosInstance } from '../lib/axios';
 import Navbar from '../components/Navbar';
 import { useAuthStore } from '../store/useAuthStore';
+import { useAuth } from './AuthContext';
 
 export default function JobDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { authUser } = useAuthStore();
-  const isRecruiter = authUser?.role === 'recruiter';
+
+  // Try to get user from AuthContext, fallback to devmatch_user in localStorage
+  let devmatchUser = null;
+  try {
+    const context = useAuth ? useAuth() : null;
+    devmatchUser = context?.user || null;
+  } catch {
+    // If useAuth is not available, fallback to localStorage
+    const saved = localStorage.getItem('devmatch_user');
+    if (saved) {
+      try {
+        devmatchUser = JSON.parse(saved);
+      } catch {}
+    }
+  }
+
+  // Prefer Zustand authUser, fallback to devmatchUser from AuthContext/localStorage
+  const currentUser = authUser || devmatchUser;
+  const isRecruiter = currentUser?.role === 'recruiter';
+  const isProgrammer = currentUser?.role === 'programmer';
+
   const [job, setJob] = useState(null);
+  const [hasApplied, setHasApplied] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios.get(`http://localhost:8000/jobs/${id}`)
-      .then(res => {
-        setJob(res.data);
+    const loadData = async () => {
+      try {
+        if (!id || typeof id !== 'string' || id.length !== 24) {
+          navigate('/jobs');
+          return;
+        }
+
+        // استخدام endpoint الجديد
+        const res = await axiosInstance.get(`/jobs/with-check/${id}`);
+        setJob(res.data.job);
+        setHasApplied(res.data.hasApplied);
+      } catch (err) {
+        console.error('Error loading job:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+        });
+        navigate('/jobs');
+      } finally {
         setLoading(false);
-      })
-      .catch(err => {
-        console.error(err);
-        setError('Failed to load job details');
-        setLoading(false);
-      });
-  }, [id]);
+      }
+    };
+
+    loadData();
+  }, [id, navigate]);
 
   const handleApplyClick = () => {
     navigate(`/jobs/${id}/apply`);
@@ -38,20 +73,6 @@ export default function JobDetails() {
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
-        </div>
-      </>
-    );
-  }
-
-  if (error) {
-    return (
-      <>
-        <Navbar />
-        <div className="container py-5 text-center">
-          <div className="alert alert-danger">{error}</div>
-          <Link to="/jobs" className="btn btn-primary mt-3">
-            Back to Jobs
-          </Link>
         </div>
       </>
     );
@@ -77,46 +98,85 @@ export default function JobDetails() {
       <div className="container py-5">
         <div className="row justify-content-center">
           <div className="col-lg-8">
-            <div className="card border-0 shadow">
-              <div className="card-header bg-primary text-white py-3">
+            <div className="card border-0 shadow-lg recruiter-dashboard-modern">
+              <div className="card-header bg-primary text-white py-4 rounded-top recruiter-dashboard-header">
                 <div className="d-flex justify-content-between align-items-center">
-                  <h1 className="h4 mb-0">{job.title}</h1>
-                  <span className={`badge ${job.status === 'open' ? 'bg-success' : 'bg-secondary'} rounded-pill`}>
+                  <h1 className="h3 mb-0 fw-bold letter-spacing-1">{job.title}</h1>
+                  <span className={`badge ${job.status === 'open' ? 'bg-success' : 'bg-secondary'} rounded-pill px-3 py-2 fs-6`}>
                     {job.status.toUpperCase()}
                   </span>
                 </div>
               </div>
 
-              <div className="card-body">
+              <div className="card-body bg-white recruiter-dashboard-body rounded-bottom">
                 <div className="mb-4">
-                  <h5 className="text-primary mb-3">Job Description</h5>
-                  <div className="bg-light p-4 rounded">
-                    <p className="mb-0">{job.description}</p>
+                  <h5 className="text-primary mb-3 fw-semibold">Job Description</h5>
+                  <div className="bg-light p-4 rounded border border-1 recruiter-dashboard-desc">
+                    <p className="mb-0 fs-5 text-dark">{job.description}</p>
                   </div>
                 </div>
 
-                <div className="d-flex justify-content-between border-top pt-4">
-                  <Link to="/jobs" className="btn btn-outline-primary">
+                <div className="d-flex justify-content-between border-top pt-4 align-items-center recruiter-dashboard-footer">
+                  <Link to="/jobs" className="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
                     <i className="bi bi-arrow-left me-2"></i>Back to Jobs
                   </Link>
-                  <button 
-                    className="btn btn-primary px-4"
-                    onClick={handleApplyClick}
-                    disabled={isRecruiter || job.status !== 'open'}
-                  >
-                    <i className="bi bi-send me-2"></i>Apply Now
-                  </button>
-                  {isRecruiter && (
-                    <div className="text-danger ms-3 align-self-center" style={{fontWeight:'bold'}}>
-                      Recruiters cannot apply for jobs
-                    </div>
-                  )}
+
+                  <div className="d-flex align-items-center gap-3">
+                    {/* Show Apply Now button only if user is programmer, job is open, and has not applied */}
+                    {isProgrammer && job.status === 'open' && !hasApplied && (
+                      <button
+                        className="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow-sm"
+                        onClick={handleApplyClick}
+                      >
+                        <i className="bi bi-send me-2"></i>Apply Now
+                      </button>
+                    )}
+                    {/* Show message if programmer already applied */}
+                    {isProgrammer && hasApplied && (
+                      <span className="text-success fw-bold fs-5">You Already Applied</span>
+                    )}
+                    {/* Show message if job is closed and user is programmer and not applied */}
+                    {isProgrammer && job.status !== 'open' && !hasApplied && (
+                      <span className="text-muted fs-6">Job is closed</span>
+                    )}
+                    {/* No recruiter message */}
+                  </div>
                 </div>
+
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modern recruiter dashboard styles */}
+      <style>
+      {`
+      .recruiter-dashboard-modern {
+        border-radius: 1.5rem;
+        background: #fff;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
+      }
+      .recruiter-dashboard-header {
+        border-radius: 1.5rem 1.5rem 0 0;
+        background: linear-gradient(90deg, #0d6efd 60%, #3b82f6 100%);
+      }
+      .recruiter-dashboard-body {
+        border-radius: 0 0 1.5rem 1.5rem;
+      }
+      .recruiter-dashboard-desc {
+        background: #f8fafc;
+        border-color: #e3e6ed !important;
+      }
+      .recruiter-dashboard-footer {
+        border-top: 2px solid #e3e6ed !important;
+        margin-top: 2rem;
+      }
+      .letter-spacing-1 {
+        letter-spacing: 1px;
+      }
+      `}
+      </style>
     </>
   );
 }

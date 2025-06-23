@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { postJob } from '../lib/recruiterApi';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
@@ -28,20 +29,7 @@ export default function PostJob() {
       return;
     }
     
-    // Fetch specializations and governorates
-    const fetchData = async () => {
-      try {
-        const [specsResponse, govsResponse] = await Promise.all([
-          axios.get('http://localhost:8000/specializations'),
-          axios.get('http://localhost:8000/governorates')
-        ]);
-        setSpecializations(specsResponse.data);
-        setGovernorates(govsResponse.data);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setApiError('Failed to load form data. Please refresh the page.');
-      }
-    };
+    
 
     fetchData();
   }, [isRecruiter, navigate]);
@@ -111,7 +99,6 @@ export default function PostJob() {
 
     let isValid = true;
     const newErrors = {};
-    
     Object.keys(form).forEach((field) => {
       validateField(field, form[field]);
       if (!form[field]) {
@@ -119,26 +106,19 @@ export default function PostJob() {
         isValid = false;
       }
     });
-
     setErrors(newErrors);
-    
     if (!isValid) {
       setIsLoading(false);
       return;
     }
-
     try {
       const newJob = {
-        ...form,
-        recruiter_id: user.user_id || user.id,
-        specialization_id: parseInt(form.specialization_id),
-        governorate_id: parseInt(form.governorate_id),
-        created_at: new Date().toISOString(),
-        status: 'open'
+        title: form.title,
+        description: form.description,
+        specialization: form.specialization_id, // backend expects specialization (string or id)
+        governorate: form.governorate_id // backend expects governorate (string or id)
       };
-
-      await axios.post('http://localhost:8000/jobs', newJob);
-      
+      await postJob(newJob);
       alert('🎉 Job posted successfully!');
       navigate('/jobs');
     } catch (err) {

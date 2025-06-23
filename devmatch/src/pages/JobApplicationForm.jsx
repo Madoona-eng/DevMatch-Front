@@ -71,7 +71,7 @@ export default function JobApplicationForm() {
     const checkIfApplied = async () => {
       if (!authUser) return;
       try {
-        const res = await axios.get(`http://localhost:8000/applications?job_id=${id}&applicant_id=${authUser._id || authUser.id}`);
+        const res = await axios.get(`http://localhost:5000/api/applications?job_id=${id}&applicant_id=${authUser._id || authUser.id}`);
         if (res.data && res.data.length > 0) {
           setHasApplied(true);
           // Also update localStorage for future fallback
@@ -152,14 +152,14 @@ export default function JobApplicationForm() {
     }
     try {
       // Double-check before submitting
-      const res = await axios.get(`http://localhost:8000/applications?job_id=${id}&applicant_id=${authUser._id || authUser.id}`);
+      const res = await axios.get(`http://localhost:5000/api/applications?job_id=${id}&applicant_id=${authUser._id || authUser.id}`);
       if (res.data && res.data.length > 0) {
         setHasApplied(true);
         alert('You already applied to this job!');
         setIsSubmitting(false);
         return;
       }
-      await axios.post(`http://localhost:8000/applications`, {
+      await axios.post(`http://localhost:5000/api/applications`, {
         job_id: id,
         applicant_id: authUser._id || authUser.id,
         cover_letter: form.coverLetter,

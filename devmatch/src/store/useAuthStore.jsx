@@ -14,7 +14,6 @@ export const useAuthStore = create((set, get) => ({
   onlineUsers: [],
   socket: null,
 
-
   signup: async (data) => {
     set({ isSigningUp: true });
     try {
@@ -93,5 +92,26 @@ export const useAuthStore = create((set, get) => ({
 
   disconnectSocket: () => {
     if (get().socket?.connected) get().socket.disconnect();
+  },
+
+  fetchUserFromToken: async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      set({ authUser: null, isCheckingAuth: false });
+      return;
+    }
+    set({ isCheckingAuth: true });
+    try {
+      // Adjust endpoint if your backend uses a different one
+      const res = await axiosInstance.get("/auth/me");
+      set({ authUser: res.data.user });
+      // Optionally connect socket if needed
+      get().connectSocket();
+    } catch (error) {
+      set({ authUser: null });
+      localStorage.removeItem("token");
+    } finally {
+      set({ isCheckingAuth: false });
+    }
   },
 }));
