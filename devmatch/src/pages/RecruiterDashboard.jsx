@@ -1,6 +1,6 @@
 // src/pages/RecruiterDashboard.jsx
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { axiosInstance } from '../lib/axios';
 import { useAuth } from './AuthContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -11,6 +11,7 @@ import Navbar from '../components/Navbar';
 export default function RecruiterDashboard() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('profile');
   const [applications, setApplications] = useState([]);
   const [jobs, setJobs] = useState([]);
@@ -38,6 +39,16 @@ export default function RecruiterDashboard() {
     status: 'open'
   });
   const [jobErrors, setJobErrors] = useState({});
+  const [isPaid, setIsPaid] = useState(false);
+
+  // Use localStorage to persist isPaid after payment
+  useEffect(() => {
+    // On mount, check if localStorage says payment was made
+    const paidFlag = localStorage.getItem('recruiterPaid');
+    if (paidFlag === '1') {
+      setIsPaid(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!user || user.role !== 'recruiter') {
@@ -49,21 +60,23 @@ export default function RecruiterDashboard() {
       try {
         setLoading(true);
 
-        // Fetch company profile data
-        if (activeTab === 'profile') {
-          const userRes = await axiosInstance.get('/profile/recruiter');
-          const userData = userRes.data.user;
-          setForm({
-            company_name: userData.company_name || '',
-            company_description: userData.company_description || '',
-            company_website: userData.company_website || '',
-            company_size: userData.company_size || '',
-            linkedin: userData.linkedin || '',
-            logo_url: userData.image || '',
-            location: userData.location || '',
-            founded_year: userData.founded_year || ''
-          });
+        // Fetch company profile data (also contains isPaid)
+        const userRes = await axiosInstance.get('/profile/recruiter');
+        const userData = userRes.data.user;
+        setIsPaid(!!userData.isPaid);
+        if (userData.isPaid) {
+          localStorage.removeItem('recruiterPaid');
         }
+        setForm({
+          company_name: userData.company_name || '',
+          company_description: userData.company_description || '',
+          company_website: userData.company_website || '',
+          company_size: userData.company_size || '',
+          linkedin: userData.linkedin || '',
+          logo_url: userData.image || '',
+          location: userData.location || '',
+          founded_year: userData.founded_year || ''
+        });
 
         // Fetch recruiter's jobs
         const jobsRes = await axiosInstance.get('/jobs');
@@ -91,6 +104,31 @@ export default function RecruiterDashboard() {
 
     fetchData();
   }, [user, navigate, activeTab]);
+
+  // Refetch payment status and open job modal after payment
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('fromPayment') === '1') {
+      // Set isPaid locally and persist in localStorage
+      setIsPaid(true);
+      localStorage.setItem('recruiterPaid', '1');
+      if (params.get('tab') === 'jobs') {
+        setActiveTab('jobs');
+        setShowJobModal(true);
+      }
+    }
+  }, [location.search]);
+
+  // Enable the Post New Job button immediately after payment
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('fromPayment') === '1') {
+      // Remove the query param after enabling the button and opening the modal
+      const newParams = new URLSearchParams(location.search);
+      newParams.delete('fromPayment');
+      window.history.replaceState({}, document.title, location.pathname + (newParams.toString() ? '?' + newParams.toString() : ''));
+    }
+  }, [isPaid, location]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -181,7 +219,16 @@ export default function RecruiterDashboard() {
 
   const handleJobSubmit = async (e) => {
     e.preventDefault();
-    if (!validateJobForm()) return;
+    if (!validateJobForm()) {
+      return;
+    }
+
+    // Restrict recruiters to 5 jobs unless payment is made or recruiterPaid=1 in localStorage
+    if (jobs.length >= 5 && !isPaid && localStorage.getItem('recruiterPaid') !== '1') {
+      alert('You have reached the limit of 5 posted jobs. Please make a payment to post more jobs.');
+      navigate('/payment', { state: { fromDashboard: true } });
+      return;
+    }
 
     try {
       setLoading(true);
@@ -589,6 +636,15 @@ export default function RecruiterDashboard() {
                       <button 
                         className="btn btn-primary btn-sm"
                         onClick={() => setShowJobModal(true)}
+                        disabled={(() => {
+                          // If recruiterPaid=1 in localStorage, never disable
+                          if (localStorage.getItem('recruiterPaid') === '1') return false;
+                          return jobs.length >= 5 && !isPaid;
+                        })()}
+                        title={(() => {
+                          if (localStorage.getItem('recruiterPaid') === '1') return '';
+                          return jobs.length >= 5 && !isPaid ? 'Payment required to post more than 5 jobs' : '';
+                        })()}
                       >
                         <i className="bi bi-plus me-1"></i>
                         Post New Job
@@ -597,6 +653,15 @@ export default function RecruiterDashboard() {
                   </div>
 
                   <div className="card-body">
+                    {/* Only show warning if not paid, job limit reached, and recruiterPaid is not set */}
+                    {(!isPaid && jobs.length >= 5 && localStorage.getItem('recruiterPaid') !== '1') && (
+                      <div className="alert alert-warning d-flex align-items-center mb-4">
+                        <i className="bi bi-credit-card-2-front me-2"></i>
+                        <div>
+                          You have reached your free job posting limit. <Link to="/payment">Make a payment</Link> to post more jobs.
+                        </div>
+                      </div>
+                    )}
                     {loading ? (
                       <div className="text-center py-5">
                         <div className="spinner-border text-primary" role="status">
