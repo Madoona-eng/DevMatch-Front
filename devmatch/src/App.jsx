@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import React, { useEffect } from "react";
 
 import PrivateChatsLayout from "../src/layout/PrivateChatsLayout";
 
@@ -28,9 +29,15 @@ import JobApplication from "./pages/JobApplication";
 // Components & Stores
 import { AuthProvider } from "./pages/AuthContext";
 import { useThemeStore } from "./store/useThemeStore";
+import { useAuthStore } from "./store/useAuthStore";
 
 function App() {
   const { theme } = useThemeStore();
+  const fetchUserFromToken = useAuthStore((state) => state.fetchUserFromToken);
+
+  useEffect(() => {
+    fetchUserFromToken();
+  }, [fetchUserFromToken]);
 
   return (
     <AuthProvider>
