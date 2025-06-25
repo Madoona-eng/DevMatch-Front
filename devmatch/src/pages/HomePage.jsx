@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Footer from '../components/Footer'; // Make sure the Footer path is correct
 import Navbar from '../components/Navbar'; // Make sure the Footer path is correct
+import ChatBot from '../components/ChatBot';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
@@ -55,9 +56,6 @@ const specializations = [
   },
 ];
 
-
-
-
 const whyNafdely = [
   {
     icon: "bi-geo-alt-fill",
@@ -98,11 +96,26 @@ const whyNafdely = [
 ];
 
 export default function HomePage() {
+  const [showChat, setShowChat] = useState(false);
   return (
     <>
-
       <Navbar />
-
+      {/* زر أيقونة الشات بوت */}
+      {!showChat && (
+        <button
+          onClick={() => setShowChat(true)}
+          style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999, background: '#2563eb', color: 'white', borderRadius: '50%', width: 56, height: 56, boxShadow: '0 2px 8px rgba(0,0,0,0.15)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          aria-label="Open ChatBot"
+        >
+          <i className="bi bi-robot" style={{ fontSize: 28 }}></i>
+        </button>
+      )}
+      {/* نافذة الشات بوت */}
+      {showChat && (
+        <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999 }}>
+          <ChatBot onClose={() => setShowChat(false)} />
+        </div>
+      )}
       <main>
        {/* Hero Section */}
 <div className="bg-dark text-white text-center position-relative" style={{
