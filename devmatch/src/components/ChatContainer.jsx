@@ -78,7 +78,7 @@ const ChatContainer = () => {
       <ChatHeader />
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {Array.isArray(messages) && messages.length > 0 && messages.map((message) => {
-          const myId = String(authUser?._id || "");
+          const myId = String(authUser?.id || "");
           const senderId = String(message?.senderId || "");
           const isMine = senderId === myId;
 
