@@ -61,6 +61,20 @@ function PaymentForm() {
         setMessage(result.error.message);
       } else if (result.paymentIntent.status === 'succeeded') {
         setMessage('Payment successful! Redirecting...');
+        // Set recruiterPaid=1 and update user.isPaid in localStorage
+        localStorage.setItem('recruiterPaid', '1');
+        if (user) {
+          const updatedUser = { ...user, isPaid: true };
+          localStorage.setItem('devmatch_user', JSON.stringify(updatedUser));
+          // Update isPaid in the backend for this user (no userId in body, use auth token)
+          const token = user.token || localStorage.getItem('token');
+          axios.put('http://localhost:5000/api/users/recruiter/mark-paid', {}, {
+            headers: {
+              Authorization: token ? `Bearer ${token}` : ''
+            }
+          })
+            .catch(() => {/* ignore error, UI will still update locally */});
+        }
         setTimeout(() => {
           navigate('/recruiter-dashboard?fromPayment=1&tab=jobs');
         }, 1200);
