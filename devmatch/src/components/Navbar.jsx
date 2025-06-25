@@ -2,13 +2,17 @@ import React, { useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faComments } from '@fortawesome/free-solid-svg-icons'; // chat icon
+import { useNotification } from '../pages/NotificationContext';
+import { faBell } from '@fortawesome/free-solid-svg-icons'; // notification icon
 
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../pages/AuthContext';
 
 export default function Navbar() {
-  const { user, logout, isAuthenticated, isRecruiter } = useAuth();
+  const { user, logout, isAuthenticated, isRecruiter, isProgrammer } = useAuth();
+  const { notifications } = useNotification();
   const navigate = useNavigate();
+  const [showNotifications, setShowNotifications] = React.useState(false);
 
   const handleLogout = () => {
     logout();
@@ -20,6 +24,8 @@ export default function Navbar() {
       window.history.pushState(null, '', window.location.href);
     });
   };
+
+  const handleBellClick = () => setShowNotifications((prev) => !prev);
 
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom px-3">
@@ -86,6 +92,51 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+      {/* إشعار الجرس للمبرمج فقط */}
+      {isAuthenticated && isProgrammer && (
+        <div className="position-relative me-3">
+          <button
+            className="btn btn-link position-relative"
+            style={{ fontSize: '1.5rem' }}
+            onClick={handleBellClick}
+          >
+            <FontAwesomeIcon icon={faBell} />
+            {notifications.length > 0 && (
+              <span
+                className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                style={{ fontSize: '0.7rem' }}
+              >
+                {notifications.length}
+              </span>
+            )}
+          </button>
+          {/* قائمة الإشعارات */}
+          {showNotifications && (
+            <div
+              className="card shadow border-0 position-absolute end-0 mt-2"
+              style={{ minWidth: 300, zIndex: 1000 }}
+            >
+              <div className="card-body p-2" style={{ maxHeight: 350, overflowY: 'auto' }}>
+                <h6 className="card-title mb-2">الإشعارات</h6>
+                {notifications.length === 0 ? (
+                  <div className="text-center text-muted">لا توجد إشعارات جديدة</div>
+                ) : (
+                  notifications.map((notif, idx) => (
+                    <div key={idx} className="alert alert-info py-2 px-3 mb-2">
+                      <div style={{ fontSize: '0.95rem' }}>
+                        {notif.message || notif.text || 'لديك إشعار جديد'}
+                      </div>
+                      <div className="text-muted small mt-1">
+                        {notif.time ? new Date(notif.time).toLocaleString() : ''}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </nav>
   );
 }

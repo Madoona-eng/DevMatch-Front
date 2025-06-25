@@ -95,21 +95,19 @@ export const useAuthStore = create((set, get) => ({
   },
 
   fetchUserFromToken: async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
+    // استخدم بيانات localStorage فقط
+    const userStr = localStorage.getItem("devmatch_user");
+    if (!userStr) {
       set({ authUser: null, isCheckingAuth: false });
       return;
     }
     set({ isCheckingAuth: true });
     try {
-      // Adjust endpoint if your backend uses a different one
-      const res = await axiosInstance.get("/auth/me");
-      set({ authUser: res.data.user });
-      // Optionally connect socket if needed
+      const user = JSON.parse(userStr);
+      set({ authUser: user });
       get().connectSocket();
     } catch (error) {
       set({ authUser: null });
-      // localStorage.removeItem("token"); // <-- Do not remove token on refresh
     } finally {
       set({ isCheckingAuth: false });
     }
