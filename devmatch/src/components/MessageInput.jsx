@@ -1,6 +1,5 @@
 import { Form, InputGroup, Button } from 'react-bootstrap';
 import { motion } from 'framer-motion';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import { FiSend } from 'react-icons/fi';
 import { useState } from 'react';
 
@@ -22,7 +21,7 @@ export default function MessageInput({ onSend }) {
       transition={{ delay: 0.2 }}
     >
       <Form onSubmit={handleSubmit}>
-        <InputGroup className="mb-3 glass-card p-1">
+        <InputGroup className="mb-3 glass-card p-2">
           <Form.Control
             type="text"
             value={message}

@@ -5,7 +5,7 @@ export const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-  axiosInstance.interceptors.request.use(
+axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -18,12 +18,38 @@ export const axiosInstance = axios.create({
   }
 );
 
-// Removed the response interceptor that deletes token and redirects on 401
 
-// Broadcast Messages
-export const createBroadcastMessage = (text) => axiosInstance.post('/messagesbroadcast/creatmassagebroadcast', { text });
-export const getBroadcastMessage = (id) => axiosInstance.get(`/messagesbroadcast/getmassagebroadcast/${id}`);
-export const getAllBroadcastMessages = () => axiosInstance.get('/messagesbroadcast/getallmassagesbroadcast');
+axiosInstance.interceptors.response.use(
+  response => {
+    console.log('API Response:', response.config.url, response.data);
+    return response;
+  },
+  error => {
+    console.error('API Error:', error.response?.data || error.message);
+    return Promise.reject(error);
+  }
+);
 
-// Comments
-export const createComment = (messageId, text) => axiosInstance.post(`/comments/${messageId}`, { text });
+export const fetchMessages = () => 
+  axiosInstance.get(`/messagesbroadcast/getallmassagesbroadcast`);
+
+export const createMessage = (text) => 
+  axiosInstance.post('/messagesbroadcast/creatmassagebroadcast', { text });
+
+export const updateMessage = (id, text) => 
+  axiosInstance.put(`/messagesbroadcast/updatemassagebroadcast/${id}`, { text });
+
+export const deleteMessage = (id) => 
+  axiosInstance.delete(`/messagesbroadcast/deletemassagebroadcast/${id}`);
+
+export const createComment = (messageId, text) => 
+  axiosInstance.post(`/comments/${messageId}`, { text });
+
+export const updateComment = (commentId, text) => 
+  axiosInstance.put(`/comments/${commentId}`, { text });
+
+export const deleteComment = (commentId) => 
+  axiosInstance.delete(`/comments/${commentId}`);
+
+export const fetchUsers = (page = 1, limit = 10) => 
+  axiosInstance.get(`/users?page=${page}&limit=${limit}`);
