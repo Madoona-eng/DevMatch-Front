@@ -68,7 +68,7 @@ export default function CommentSection({
             >
               <div className="d-flex align-items-start">
                 <img 
-                  src={comment.user?.avatar || '/default-avatar.png'} 
+                  src={comment.user?.image || '/default-avatar.png'} 
                   alt={comment.user?.name || 'User'}
                   className="rounded-circle me-3"
                   width="32"

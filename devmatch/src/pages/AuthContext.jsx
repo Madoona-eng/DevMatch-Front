@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-
+import { useAuthStore } from '../store/useAuthStore';
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -30,11 +30,15 @@ export const AuthProvider = ({ children }) => {
   const login = (userData) => {
     setUser(userData);
     localStorage.setItem('devmatch_user', JSON.stringify(userData));
+     const { connectSocket } = useAuthStore.getState();
+      connectSocket(); 
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('devmatch_user');
+    const { disconnectSocket } = useAuthStore.getState();
+    disconnectSocket();
   };
 
   const updateUser = (updatedData) => {

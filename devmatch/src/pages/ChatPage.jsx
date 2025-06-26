@@ -9,6 +9,7 @@ import { FiUsers, FiMessageCircle } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './Chatpage.css';
+import Navbar from '../components/Navbar.jsx'
 import {
   fetchMessages,
   createMessage,
@@ -254,6 +255,7 @@ export default function ChatPage() {
 
   return (
     <>
+      <Navbar />
       <ToastContainer position="top-right" autoClose={3000} />
       <Container fluid className="chat-page py-3">
         <Row className="g-3">

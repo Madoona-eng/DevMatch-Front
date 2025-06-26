@@ -99,41 +99,11 @@
 //   },
 // }));
 
-import { create } from "zustand";
-import { axiosInstance } from "../lib/axios.jsx";
-import toast from "react-hot-toast";
-import { io } from "socket.io-client";
 
-const BASE_URL = process.env.NODE_ENV === "development"
-  ? "http://localhost:5000"
-  : "http://localhost:5000";
 
-export const useAuthStore = create((set, get) => ({
-  isSigningUp: false,
-  isLoggingIn: false,
-  isUpdatingProfile: false,
 
-  onlineUsers: [],
-  authUser: JSON.parse(localStorage.getItem("devmatch_user")) || null,
-  socket: null,
-  isCheckingAuth: true,
 
-  signup: async (data) => {
-    set({ isSigningUp: true });
-    try {
-      const res = await axiosInstance.post("/auth/signup", data);
-      const { user, token } = res.data;
-      set({ authUser: user });
-      localStorage.setItem("token", token);
-      toast.success("Account created successfully");
-      get().connectSocket();
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Signup failed");
-    } finally {
-      set({ isSigningUp: false });
-    }
-  },
-  // signup: async (data) => {
+ // signup: async (data) => {
   //   set({ isSigningUp: true });
   //   try {
   //     const res = await axiosInstance.post("/auth/signup", data);
@@ -180,6 +150,54 @@ export const useAuthStore = create((set, get) => ({
   //   }
   // },
 
+  // connectSocket: () => {
+  //   const { authUser, socket } = get();
+  //   if (!authUser || socket?.connected) return;
+
+  //   const newSocket = io(BASE_URL, {
+  //     query: {
+  //       userId: authUser.id, // ✅ use .id based on your storage structure
+  //     },
+  //     transports: ['websocket'],
+  //   });
+
+  //   newSocket.connect();
+  //   set({ socket: newSocket });
+
+  //   newSocket.on("getOnlineUsers", (userIds) => {
+  //     set({ onlineUsers: userIds });
+  //   });
+
+  //   newSocket.on("disconnect", () => {
+  //     set({ onlineUsers: [] });
+  //   });
+  // },
+
+  // disconnectSocket: () => {
+  //   const { socket } = get();
+  //   if (socket?.connected) socket.disconnect();
+  //   set({ socket: null });
+  // },
+import { create } from "zustand";
+import { axiosInstance } from "../lib/axios.jsx";
+import toast from "react-hot-toast";
+import { io } from "socket.io-client";
+import {useChatStore} from './useChatStore.jsx'
+const BASE_URL = process.env.NODE_ENV === "development"
+  ? "http://localhost:5000"
+  : "http://localhost:5000";
+
+export const useAuthStore = create((set, get) => ({
+  isSigningUp: false,
+  isLoggingIn: false,
+  isUpdatingProfile: false,
+
+  onlineUsers: [],
+  authUser: JSON.parse(localStorage.getItem("devmatch_user")) || null,
+  socket: null,
+  isCheckingAuth: true,
+
+ 
   updateProfile: async (data) => {
     set({ isUpdatingProfile: true });
     try {
@@ -195,16 +213,30 @@ export const useAuthStore = create((set, get) => ({
       set({ isUpdatingProfile: false });
     }
   },
-
-  connectSocket: () => {
+ connectSocket: () => {
     const { authUser, socket } = get();
     if (!authUser || socket?.connected) return;
 
     const newSocket = io(BASE_URL, {
       query: {
-        userId: authUser.id, // ✅ use .id based on your storage structure
+        userId: authUser.id,
       },
       transports: ['websocket'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+
+    newSocket.on('connect', () => {
+      console.log('Socket connected:', newSocket.id);
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('Socket disconnected');
+    });
+
+    newSocket.on('connect_error', (err) => {
+      console.error('Socket connection error:', err);
     });
 
     newSocket.connect();
@@ -214,8 +246,16 @@ export const useAuthStore = create((set, get) => ({
       set({ onlineUsers: userIds });
     });
 
-    newSocket.on("disconnect", () => {
-      set({ onlineUsers: [] });
+    newSocket.on("newMessage", (message) => {
+      const { selectedUser } = useChatStore.getState();
+      if (selectedUser && 
+          (message.senderId === selectedUser._id || 
+           message.receiverId === selectedUser._id)) {
+        useChatStore.getState().setMessages([
+          ...useChatStore.getState().messages,
+          message
+        ]);
+      }
     });
   },
 
@@ -225,24 +265,5 @@ export const useAuthStore = create((set, get) => ({
     set({ socket: null });
   },
 
-  fetchUserFromToken: async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      set({ authUser: null, isCheckingAuth: false });
-      return;
-    }
-    set({ isCheckingAuth: true });
-    try {
-      // Adjust endpoint if your backend uses a different one
-      const res = await axiosInstance.get("/auth/me");
-      set({ authUser: res.data.user });
-      // Optionally connect socket if needed
-      get().connectSocket();
-    } catch (error) {
-      set({ authUser: null });
-      // localStorage.removeItem("token"); // <-- Do not remove token on refresh
-    } finally {
-      set({ isCheckingAuth: false });
-    }
-  },
+
 }));

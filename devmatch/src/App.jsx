@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import React, { useEffect } from "react";
-
+import { useAuthStore } from './store/useAuthStore';
+import {useAuth} from './pages/AuthContext'
 import PrivateChatsLayout from "../src/layout/PrivateChatsLayout";
 
 // Pages
@@ -30,50 +31,56 @@ import PaymentPage from "./pages/PaymentPage";
 // Components & Stores
 import { AuthProvider } from "./pages/AuthContext";
 import { useThemeStore } from "./store/useThemeStore";
-import { useAuthStore } from "./store/useAuthStore";
 
-function App() {
+function AppContent() {
   const { theme } = useThemeStore();
-  const fetchUserFromToken = useAuthStore((state) => state.fetchUserFromToken);
+  const { user } = useAuth(); // الآن يمكن استخدام useAuth هنا
+  const { connectSocket } = useAuthStore();
 
   useEffect(() => {
-    fetchUserFromToken();
-  }, [fetchUserFromToken]);
+    if (user) {
+      connectSocket();  
+    }
+  }, [user]);
 
   return (
-    <AuthProvider>
-      <div className="app-container">
-        <Routes>
-          {/* Private Chat Routes */}
-          <Route path="/privatechats" element={<PrivateChatsLayout />}>
-            <Route index element={<Navigate to="home" />} />
-            <Route path="home" element={<HomePagechat /> } />
-            <Route path="signup" element={<SignUpPagechat />} />
-            <Route path="login" element={ <LoginPagechat />} />
-            <Route path="settings" element={<SettingsPagechat />} />
-            <Route path="profile" element={<ProfilePagechat />} />
-          </Route>
+    <div className="app-container">
+      <Routes>
+        {/* Private Chat Routes */}
+        <Route path="/privatechats" element={<PrivateChatsLayout />}>
+          <Route index element={<Navigate to="home" />} />
+          <Route path="home" element={<HomePagechat /> } />
+          <Route path="settings" element={<SettingsPagechat />} />
+          <Route path="profile" element={<ProfilePagechat />} />
+        </Route>
 
-          {/* Public Routes */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/chat" element={<ChatPage />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/jobs" element={<JobsPage />} />
-          <Route path="/jobs/:id" element={<JobDetails />} />
-          <Route path="/jobs/:id/apply" element={<JobApplication />} />
-          <Route path="/recruiter-dashboard" element={<RecruiterDashboard />} />
-          <Route path="/post-job" element={<PostJob />} />
-          <Route path="/complete-profile" element={<CompleteProfile />} />
-          <Route path="/recruiter-dashboard/jobs/:jobId/applications" element={<JobApplications />} />
-          <Route path="/recruiter-dashboard/applications/:id" element={<ApplicationDetails />} />
-          <Route path="/Freelancers" element={<Freelancers />} />
-          <Route path="/CompleteFreelancerProfile" element={<CompleteFreelancerProfile />} />
-          <Route path="/FreelancerProfile/:id" element={<FreelancerProfile />} />
-          <Route path="/payment" element={<PaymentPage />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
+        {/* Public Routes */}
+        <Route path="/" element={<HomePage />} />
+        <Route path="/chat" element={<ChatPage />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/jobs" element={<JobsPage />} />
+        <Route path="/jobs/:id" element={<JobDetails />} />
+        <Route path="/jobs/:id/apply" element={<JobApplication />} />
+        <Route path="/recruiter-dashboard" element={<RecruiterDashboard />} />
+        <Route path="/post-job" element={<PostJob />} />
+        <Route path="/complete-profile" element={<CompleteProfile />} />
+        <Route path="/recruiter-dashboard/jobs/:jobId/applications" element={<JobApplications />} />
+        <Route path="/recruiter-dashboard/applications/:id" element={<ApplicationDetails />} />
+        <Route path="/Freelancers" element={<Freelancers />} />
+        <Route path="/CompleteFreelancerProfile" element={<CompleteFreelancerProfile />} />
+        <Route path="/FreelancerProfile/:id" element={<FreelancerProfile />} />
+        <Route path="/payment" element={<PaymentPage />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
     </AuthProvider>
   );
 }

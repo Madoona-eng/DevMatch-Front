@@ -21,7 +21,6 @@ export const useChatStore = create((set, get) => ({
   isUsersLoading: false,
   isMessagesLoading: false,
 
-  // Fetch all users you can chat with (from /messages/users)
   getUsers: async () => {
     set({ isUsersLoading: true });
     const token = localStorage.getItem("token");
@@ -31,7 +30,6 @@ export const useChatStore = create((set, get) => ({
       return;
     }
     try {
-      // Correct endpoint for chat-eligible users
       const res = await axiosInstance.get("/messages/users");
       set({ users: res.data });
     } catch (error) {
@@ -41,7 +39,6 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  // Fetch all messages with a specific user
   getMessages: async (userId) => {
     set({ isMessagesLoading: true });
     const token = localStorage.getItem("token");
@@ -65,11 +62,12 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  // Send a message to a user (userId is required)
   sendMessage: async ({ userId, text, image }) => {
     const { selectedUser, messages } = get();
     const token = localStorage.getItem("token");
     const targetUserId = userId || (selectedUser && selectedUser._id);
+    const authUser = useAuthStore.getState().authUser;
+    
     if (!token) {
       toast.error("You must be logged in to send messages.");
       return;
@@ -78,26 +76,71 @@ export const useChatStore = create((set, get) => ({
       toast.error("No user selected to send message");
       return;
     }
+
     try {
+      // Create temporary message
+      const tempId = Date.now().toString();
+      const tempMessage = {
+        _id: tempId,
+        senderId: authUser.id,
+        receiverId: targetUserId,
+        text,
+        image,
+        createdAt: new Date().toISOString(),
+        temp: true
+      };
+      
+      // Optimistic update
+      set({ messages: [...messages, tempMessage] });
+
+      // Send to server
       const res = await axiosInstance.post(`/messages/send/${targetUserId}`, { text, image });
-      set({ messages: [...messages, res.data] });
+      const serverMessage = res.data;
+
+      // Replace temp message with server message
+      set(state => ({
+        messages: state.messages.map(msg => 
+          msg._id === tempId ? serverMessage : msg
+        )
+      }));
+
+      // Emit via socket
+      const { socket } = useAuthStore.getState();
+      if (socket) {
+        socket.emit("sendMessage", serverMessage);
+      }
+
     } catch (error) {
       handleAuthError(error);
+      // Remove temp message on error
+      set(state => ({
+        messages: state.messages.filter(msg => msg._id !== tempId)
+      }));
     }
   },
 
-  // Subscribe to new messages via socket (if using sockets)
   subscribeToMessages: () => {
-    const { selectedUser } = get();
-    if (!selectedUser) return;
     const socket = useAuthStore.getState().socket;
     if (!socket) return;
+
+    socket.off("newMessage");
+
     socket.on("newMessage", (newMessage) => {
-      if (
-        newMessage.senderId === selectedUser._id || newMessage.receiverId === selectedUser._id
-      ) {
-        set({ messages: [...get().messages, newMessage] });
+      const { selectedUser, messages } = get();
+      
+      if (selectedUser && 
+          (newMessage.senderId === selectedUser._id || 
+           newMessage.receiverId === selectedUser._id)) {
+        set({ messages: [...messages, newMessage] });
       }
+      
+      set(state => ({
+        users: state.users.map(user => 
+          user._id === newMessage.senderId || user._id === newMessage.receiverId
+            ? { ...user, lastMessage: newMessage }
+            : user
+        )
+      }));
     });
   },
 
