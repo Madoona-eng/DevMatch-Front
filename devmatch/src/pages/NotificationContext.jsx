@@ -11,44 +11,45 @@ export const NotificationProvider = ({ children }) => {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("devmatch_user"));
-    console.debug("[Notification] Loaded user from localStorage:", user);
-    // Support both _id and id
     const userId = user?._id || user?.id;
+
     if (user?.role === "programmer" && userId) {
-      console.debug("[Notification] Using userId for socket:", userId);
       const newSocket = io("http://localhost:5000", {
         transports: ["websocket"],
-        withCredentials: true,
+        query: {
+          userId: userId.toString(), // ✅ Send user ID to backend
+        },
       });
+
+      newSocket.on("connect", () => {
+        console.debug("[Notification] Socket connected:", newSocket.id);
+        newSocket.emit("join", userId.toString()); // ✅ Join your room
+      });
+
       newSocket.on("connect_error", (err) => {
         console.error("[Notification] Socket connection error:", err);
       });
-      newSocket.on("connect", () => {
-        console.debug("[Notification] Socket connected, joining room:", userId);
-        newSocket.emit("join", userId.toString());
-      });
+
       newSocket.on("disconnect", (reason) => {
         console.warn("[Notification] Socket disconnected:", reason);
       });
+
       newSocket.on("reconnect", (attempt) => {
         console.info("[Notification] Socket reconnected, attempt:", attempt);
+        newSocket.emit("join", userId.toString()); // ✅ re-join on reconnect
       });
-      newSocket.on("reconnect_attempt", (attempt) => {
-        console.info("[Notification] Socket reconnect attempt:", attempt);
-      });
+
       newSocket.on(`application-update-${userId}`, (data) => {
         console.debug("[Notification] Notification received:", data);
-        alert(data.message); // Or use your notification UI
+        alert(data.message);
         setNotifications((prev) => [data, ...prev]);
       });
+
       setSocket(newSocket);
-      console.debug("[Notification] Socket instance set in state.");
+
       return () => {
-        console.debug("[Notification] Cleaning up socket connection.");
         newSocket.disconnect();
       };
-    } else {
-      console.warn("[Notification] No valid programmer user found in localStorage.");
     }
   }, []);
 

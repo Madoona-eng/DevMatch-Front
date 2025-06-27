@@ -203,7 +203,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.put("/auth/update-profile", data);
       const updatedUser =authUser;
-      localStorage.setItem("devmatch_user", JSON.stringify(updatedUser)); // ✅ fixed key
+      localStorage.setItem("devmatch_user", JSON.stringify(updatedUser)); 
       set({ authUser: updatedUser });
       toast.success("Profile updated successfully");
     } catch (error) {
@@ -219,7 +219,7 @@ export const useAuthStore = create((set, get) => ({
 
     const newSocket = io(BASE_URL, {
       query: {
-        userId: authUser.id,
+        userId: authUser.id||authUser._id, // Use id or _id based on your storage structure
       },
       transports: ['websocket'],
       reconnection: true,
@@ -265,26 +265,23 @@ export const useAuthStore = create((set, get) => ({
     set({ socket: null });
   },
 
-<<<<<<< HEAD
-  fetchUserFromToken: async () => {
-    // استخدم بيانات localStorage فقط
-    const userStr = localStorage.getItem("devmatch_user");
-    if (!userStr) {
-      set({ authUser: null, isCheckingAuth: false });
-      return;
-    }
-    set({ isCheckingAuth: true });
-    try {
-      const user = JSON.parse(userStr);
-      set({ authUser: user });
-      get().connectSocket();
-    } catch (error) {
-      set({ authUser: null });
-    } finally {
-      set({ isCheckingAuth: false });
-    }
-  },
-=======
+  // fetchUserFromToken: async () => {
+  //   // استخدم بيانات localStorage فقط
+  //   const userStr = localStorage.getItem("devmatch_user");
+  //   if (!userStr) {
+  //     set({ authUser: null, isCheckingAuth: false });
+  //     return;
+  //   }
+  //   set({ isCheckingAuth: true });
+  //   try {
+  //     const user = JSON.parse(userStr);
+  //     set({ authUser: user });
+  //     get().connectSocket();
+  //   } catch (error) {
+  //     set({ authUser: null });
+  //   } finally {
+  //     set({ isCheckingAuth: false });
+  //   }
+  // },
 
->>>>>>> managechat
 }));

@@ -52,7 +52,7 @@ const Navbarchat = () => {
                     className="btn btn-sm gap-2"
                   >
                     <LogOut className="size-5" />
-                    <span className="hidden sm:inline">Logout</span>
+                    <span className="hidden sm:inline">Go to Home</span>
                </Link>
                 </>
               )}
