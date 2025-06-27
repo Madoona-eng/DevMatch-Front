@@ -27,12 +27,15 @@ import JobApplication from "./pages/JobApplication";
 import JobApplicationForm from "./pages/JobApplicationForm";
 import PaymentPage from "./pages/PaymentPage";
 
+import { useEffect } from 'react';
+import { useAuthStore } from './store/useAuthStore';
 // Components & Stores
 import { AuthProvider } from "./pages/AuthContext";
 import { useThemeStore } from "./store/useThemeStore";
 
 function App() {
   const { theme } = useThemeStore();
+
 
   return (
     <AuthProvider>

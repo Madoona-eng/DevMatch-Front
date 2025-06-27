@@ -1,8 +1,9 @@
-// src/pages/ApplicationDetails.jsx
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { axiosInstance } from '../lib/axios';
 import { useAuth } from './AuthContext';
+import { useChatStore } from '../store/useChatStore';
+import { MessageSquare } from 'lucide-react';
 
 export default function ApplicationDetails() {
   const params = useParams();
@@ -12,6 +13,7 @@ export default function ApplicationDetails() {
   const [application, setApplication] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { setSelectedUser } = useChatStore();
 
   useEffect(() => {
     if (!user) {
@@ -56,6 +58,18 @@ export default function ApplicationDetails() {
       let msg = 'Failed to update application status';
       if (err.response?.data?.message) msg = err.response.data.message;
       setError(msg);
+    }
+  };
+
+  const handleStartChat = () => {
+    if (application?.applicant_id) {
+      setSelectedUser({
+        _id: application.applicant_id._id,
+        name: application.applicant_id.name,
+        email: application.applicant_id.email,
+        image: application.applicant_id.image
+      });
+      navigate('/privatechats/home');
     }
   };
 
@@ -165,6 +179,16 @@ export default function ApplicationDetails() {
                 ) : (
                   <p className="text-muted">No CV uploaded</p>
                 )}
+              </div>
+              <div className="d-flex justify-content-end">
+                <button 
+                  onClick={handleStartChat}
+                  className="btn btn-outline-primary d-flex align-items-center gap-1"
+                  title="Message this candidate"
+                >
+                  <MessageSquare size={16} />
+                  <span>Message</span>
+                </button>
               </div>
             </div>
           </div>

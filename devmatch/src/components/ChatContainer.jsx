@@ -9,21 +9,20 @@ import { formatMessageTime } from "../lib/utils";
 
 const themeStyles = {
   coffee: {
-    sent: 'bg-yellow-100 text-gray-900', // Sent messages now match receiver color
+    sent: 'bg-yellow-100 text-gray-900',
     received: 'bg-yellow-100 text-gray-900',
     container: 'bg-base-200',
   },
   dark: {
-    sent: 'bg-gray-800 text-gray-100', // Sent messages now match receiver color
+    sent: 'bg-gray-800 text-gray-100',
     received: 'bg-gray-800 text-gray-100',
     container: 'bg-gray-900',
   },
   light: {
-    sent: 'bg-gray-100 text-gray-900', // Sent messages now match receiver color
+    sent: 'bg-gray-100 text-gray-900',
     received: 'bg-gray-100 text-gray-900',
     container: 'bg-gray-50',
   },
-  // Add more themes as needed
 };
 
 const ChatContainer = () => {
@@ -44,13 +43,17 @@ const ChatContainer = () => {
 
   useEffect(() => {
     if (!selectedUser || !selectedUser._id) return;
+    
     getMessages(selectedUser._id);
     subscribeToMessages();
-    return () => unsubscribeFromMessages();
+    
+    return () => {
+      unsubscribeFromMessages();
+    };
   }, [selectedUser, getMessages, subscribeToMessages, unsubscribeFromMessages]);
 
   useEffect(() => {
-    if (messageEndRef.current && messages) {
+    if (messageEndRef.current) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
@@ -78,7 +81,7 @@ const ChatContainer = () => {
       <ChatHeader />
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {Array.isArray(messages) && messages.length > 0 && messages.map((message) => {
-          const myId = String(authUser?._id || "");
+          const myId = String(authUser?.id || "");
           const senderId = String(message?.senderId || "");
           const isMine = senderId === myId;
 
@@ -93,7 +96,7 @@ const ChatContainer = () => {
 
           return (
             <div
-              key={message?._id}
+              key={message?._id || message?.tempId}
               className={`w-full flex ${isMine ? 'justify-end' : 'justify-start'} px-2 py-1`}
             >
               <div className={`max-w-[80%] flex ${isMine ? 'flex-row-reverse' : 'flex-row'} items-end gap-1`}>
