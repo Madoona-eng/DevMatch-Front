@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import GoogleSignupButton from '../components/GoogleSignupButton';
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -380,6 +381,9 @@ export default function Register() {
                 </p>
               </div>
             </form>
+            <div className="mb-3 mt-3">
+              <GoogleSignupButton label="Sign up with Google" />
+            </div>
           </div>
         </div>
       </div>

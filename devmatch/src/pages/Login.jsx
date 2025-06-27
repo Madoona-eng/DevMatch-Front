@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import GoogleSignupButton from '../components/GoogleSignupButton';
 
 export default function Login() {
   const [form, setForm] = useState({
@@ -16,6 +17,14 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const [searchParams] = useSearchParams();
+  let verificationMsg = '';
+  const verified = searchParams.get('verified');
+  const error = searchParams.get('error');
+  if (verified === 'success') verificationMsg = 'Your email has been verified! Please log in.';
+  else if (verified === 'already') verificationMsg = 'Your email is already verified. Please log in.';
+  else if (error === 'invalidtoken') verificationMsg = 'Invalid or expired verification link.';
+  else if (error === 'notfound') verificationMsg = 'User not found.';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -143,6 +152,12 @@ export default function Login() {
           </div>
           
           <div className="card-body p-4">
+            {verificationMsg && (
+              <div className="alert alert-success d-flex align-items-center mb-3" role="alert">
+                <i className="bi bi-check-circle-fill me-2"></i>
+                <div>{verificationMsg}</div>
+              </div>
+            )}
             {apiError && (
               <div className="alert alert-danger d-flex align-items-center mb-3" role="alert">
                 <i className="bi bi-exclamation-triangle-fill me-2"></i>
@@ -220,6 +235,10 @@ export default function Login() {
                   </>
                 )}
               </button>
+            </form>
+            <div className="mb-3 mt-3">
+              <GoogleSignupButton label="Sign in with Google" />
+            </div>
 
               <div className="text-center">
                 <p className="text-muted mb-0">
@@ -233,7 +252,6 @@ export default function Login() {
                   </Link>
                 </p>
               </div>
-            </form>
           </div>
         </div>
       </div>
