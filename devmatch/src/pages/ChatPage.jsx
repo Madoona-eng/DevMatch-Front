@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Container, Row, Col, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Spinner, Modal, Button } from 'react-bootstrap';
 import Sidebar from '../components/Sidebarchat';
 import ChatMessage from '../components/ChatMessage';
 import MessageInput from '../components/MessageInput';
 import CommentSection from '../components/CommentSection';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiUsers, FiMessageCircle } from 'react-icons/fi';
+import { FiUsers, FiMessageCircle, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './Chatpage.css';
@@ -32,11 +32,13 @@ export default function ChatPage() {
     limit: 10,
     total: 0
   });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const currentUser = useAuthStore(state => state.authUser);
   const isCheckingAuth = useAuthStore(state => state.isCheckingAuth);
 
-  // ✅ Stop checking auth when authUser is known (either null or user)
   useEffect(() => {
     if (currentUser !== undefined) {
       useAuthStore.setState({ isCheckingAuth: false });
@@ -140,23 +142,56 @@ export default function ChatPage() {
   };
 
   const handleDeleteMessage = async (messageId) => {
-    if (window.confirm('Are you sure you want to delete this message?')) {
-      try {
-        await deleteMessage(messageId);
-        const updatedAll = allMessages.filter(msg => msg._id !== messageId);
+    setItemToDelete({ id: messageId, type: 'message' });
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    setItemToDelete({ id: commentId, type: 'comment' });
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      if (itemToDelete.type === 'message') {
+        await deleteMessage(itemToDelete.id);
+        const updatedAll = allMessages.filter(msg => msg._id !== itemToDelete.id);
         setAllMessages(updatedAll);
         const start = (pagination.page - 1) * pagination.limit;
         setMessages(updatedAll.slice(start, start + pagination.limit));
         setPagination(prev => ({ ...prev, total: updatedAll.length }));
-        if (selectedMessage?._id === messageId) {
+        if (selectedMessage?._id === itemToDelete.id) {
           setSelectedMessage(null);
           setShowComments(false);
         }
         toast.success('Message deleted successfully');
-      } catch (error) {
-        console.error('Error deleting message:', error);
-        toast.error('Failed to delete message');
+      } else if (itemToDelete.type === 'comment') {
+        await deleteComment(itemToDelete.id);
+        const updateMsg = msg =>
+          msg._id === selectedMessage._id
+            ? {
+              ...msg,
+              comments: (msg.comments || []).filter(comment => comment._id !== itemToDelete.id)
+            }
+            : msg;
+
+        const updatedAll = allMessages.map(updateMsg);
+        setAllMessages(updatedAll);
+        const start = (pagination.page - 1) * pagination.limit;
+        setMessages(updatedAll.slice(start, start + pagination.limit));
+        setSelectedMessage(updateMsg(selectedMessage));
+        toast.success('Comment deleted successfully');
       }
+    } catch (error) {
+      console.error(`Error deleting ${itemToDelete.type}:`, error);
+      toast.error(`Failed to delete ${itemToDelete.type}`);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+      setItemToDelete(null);
     }
   };
 
@@ -206,31 +241,6 @@ export default function ChatPage() {
     }
   };
 
-  const handleDeleteComment = async (commentId) => {
-    if (window.confirm('Are you sure you want to delete this comment?')) {
-      try {
-        await deleteComment(commentId);
-        const updateMsg = msg =>
-          msg._id === selectedMessage._id
-            ? {
-              ...msg,
-              comments: (msg.comments || []).filter(comment => comment._id !== commentId)
-            }
-            : msg;
-
-        const updatedAll = allMessages.map(updateMsg);
-        setAllMessages(updatedAll);
-        const start = (pagination.page - 1) * pagination.limit;
-        setMessages(updatedAll.slice(start, start + pagination.limit));
-        setSelectedMessage(updateMsg(selectedMessage));
-        toast.success('Comment deleted successfully');
-      } catch (error) {
-        console.error('Error deleting comment:', error);
-        toast.error('Failed to delete comment');
-      }
-    }
-  };
-
   const handleSelectMessage = (message) => {
     setSelectedMessage(message);
     setShowComments(true);
@@ -258,31 +268,23 @@ export default function ChatPage() {
       <Navbar />
       <ToastContainer position="top-right" autoClose={3000} />
       <Container fluid className="chat-page py-3">
-        <Row className="g-3">
-          <Col md={3} className="d-none d-md-block">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="h-100"
-            >
-              <Sidebar />
-            </motion.div>
-          </Col>
-
-          <Col xs={12} md={showComments ? 6 : 9}>
+        <Row className="g-3 justify-content-center">
+          <Col xs={12} lg={8} xl={showComments ? 6 : 8}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
               className="h-100 d-flex flex-column"
             >
-              <div className="d-flex align-items-center mb-3">
-                <FiMessageCircle className="me-2" size={24} color="#0d6efd" />
-                <h4 className="mb-0 text-primary">Group Chat</h4>
+              <div className="d-flex align-items-center mb-3 p-3 bg-white rounded-3 shadow-sm">
+                <FiMessageCircle className="me-2" size={24} color="#6366f1" />
+                <h4 className="mb-0 text-gradient-primary">Community Chat</h4>
+                <div className="ms-auto badge bg-primary bg-opacity-10 text-primary">
+                  {pagination.total} messages
+                </div>
               </div>
 
-              <div className="messages-container flex-grow-1 mb-3">
+              <div className="messages-container flex-grow-1 mb-3 bg-white rounded-3 shadow-sm p-3 overflow-auto">
                 <AnimatePresence>
                   {messages.map(message => (
                     <ChatMessage
@@ -297,38 +299,54 @@ export default function ChatPage() {
                   ))}
                 </AnimatePresence>
 
-                <div className="d-flex justify-content-center mt-3">
-                  <nav>
-                    <ul className="pagination">
-                      <li className={`page-item ${pagination.page === 1 ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => handlePageChange(pagination.page - 1)}>Previous</button>
-                      </li>
-                      {Array.from({ length: Math.ceil(pagination.total / pagination.limit) }, (_, i) => (
-                        <li key={i} className={`page-item ${pagination.page === i + 1 ? 'active' : ''}`}>
-                          <button className="page-link" onClick={() => handlePageChange(i + 1)}>{i + 1}</button>
-                        </li>
-                      ))}
-                      <li className={`page-item ${pagination.page * pagination.limit >= pagination.total ? 'disabled' : ''}`}>
-                        <button className="page-link" onClick={() => handlePageChange(pagination.page + 1)}>Next</button>
-                      </li>
-                    </ul>
-                  </nav>
-                </div>
+                {messages.length === 0 && !loading && (
+                  <div className="text-center py-5">
+                    <div className="display-5 text-muted">No messages yet</div>
+                    <p className="text-muted">Be the first to start the conversation!</p>
+                  </div>
+                )}
               </div>
 
-              <MessageInput onSend={handleSendMessage} />
+              <div className="pagination-container mb-3">
+                <nav>
+                  <ul className="pagination justify-content-center">
+                    <li className={`page-item ${pagination.page === 1 ? 'disabled' : ''}`}>
+                      <button className="page-link" onClick={() => handlePageChange(pagination.page - 1)}>
+                        &laquo; Previous
+                      </button>
+                    </li>
+                    {Array.from({ length: Math.ceil(pagination.total / pagination.limit) }, (_, i) => (
+                      <li key={i} className={`page-item ${pagination.page === i + 1 ? 'active' : ''}`}>
+                        <button className="page-link" onClick={() => handlePageChange(i + 1)}>
+                          {i + 1}
+                        </button>
+                      </li>
+                    ))}
+                    <li className={`page-item ${pagination.page * pagination.limit >= pagination.total ? 'disabled' : ''}`}>
+                      <button className="page-link" onClick={() => handlePageChange(pagination.page + 1)}>
+                        Next &raquo;
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+
+              <div className="message-input-container bg-white rounded-3 shadow-sm p-3">
+                <MessageInput onSend={handleSendMessage} />
+              </div>
             </motion.div>
           </Col>
 
           <AnimatePresence>
             {showComments && (
-              <Col xs={12} md={3} className="mt-md-0 mt-3">
+              <Col xs={12} lg={4} xl={4} className="mt-lg-0 mt-3">
                 <motion.div
                   initial={{ opacity: 0, x: 50 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 50 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  className="h-100"
+                  className="bg-white rounded-3 shadow-sm"
+                  style={{ maxHeight: '70vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
                 >
                   <CommentSection
                     comments={selectedMessage?.comments || []}
@@ -344,6 +362,46 @@ export default function ChatPage() {
           </AnimatePresence>
         </Row>
       </Container>
+
+      {/* Delete Confirmation Modal */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
+        <Modal.Header closeButton className="border-0 pb-0">
+          <Modal.Title className="d-flex align-items-center">
+            <FiAlertTriangle className="text-danger me-2" size={24} />
+            Confirm Deletion
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="lead">
+            Are you sure you want to delete this {itemToDelete?.type}?
+          </p>
+          <p className="text-muted">
+            This action cannot be undone and the {itemToDelete?.type} will be permanently removed.
+          </p>
+        </Modal.Body>
+        <Modal.Footer className="border-0">
+          <Button variant="light" onClick={() => setShowDeleteModal(false)} disabled={isDeleting}>
+            Cancel
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={confirmDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                <span className="ms-2">Deleting...</span>
+              </>
+            ) : (
+              <>
+                <FiTrash2 className="me-1" />
+                Delete
+              </>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }
