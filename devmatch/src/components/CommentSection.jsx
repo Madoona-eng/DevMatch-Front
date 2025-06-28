@@ -39,7 +39,7 @@ export default function CommentSection({
   return (
     <Card className="glass-card" style={{ maxHeight: '70vh', minHeight: '350px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <Card.Header className="d-flex justify-content-between align-items-center bg-primary text-white border-0">
-        <Card.Title className="mb-0">Comments</Card.Title>
+        <Card.Title className="mb-0">Replies</Card.Title>
         <Button 
           variant="link" 
           onClick={onClose}

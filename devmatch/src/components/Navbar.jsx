@@ -46,12 +46,35 @@ export default function Navbar() {
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
 <li className="nav-item">
   <Link to="/jobs" className="nav-link">Jobs</Link>
-</li>            <li className="nav-item"><a className="nav-link" href="#">Portfolios</a></li>
+</li>   
+         
 <li className="nav-item"><a className="nav-link" href="/chat">Community</a></li>
 <li className="nav-item">
-  <a className="nav-link" href="/privatechats">
-    <FontAwesomeIcon icon={faComments} style={{ color: 'blue', marginRight: '8px' }} />
-    
+  <a 
+    className="nav-link d-flex align-items-center gap-2" 
+    href="/privatechats"
+    style={{
+      padding: '8px 12px',
+      fontWeight: '500'
+    }}
+  >
+    <FontAwesomeIcon 
+      icon={faComments} 
+      style={{ 
+        color: '#1a73e8',
+        fontSize: '1.1rem',
+        transition: 'all 0.2s ease'
+      }} 
+    />
+    <span 
+      style={{
+        color: '#1a73e8',
+        fontWeight: '600',
+        letterSpacing: '0.5px'
+      }}
+    >
+      Chatty
+    </span>
   </a>
 </li>
 
