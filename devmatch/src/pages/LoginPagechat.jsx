@@ -15,8 +15,12 @@ const LoginPagechat = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await login(formData);
-    navigate("/privatechats/home");
+    try {
+      await login(formData);
+      navigate("/privatechats/home");
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   };
 
   return (

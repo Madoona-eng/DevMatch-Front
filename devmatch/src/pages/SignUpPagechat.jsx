@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { Eye, EyeOff, Loader2, Lock, Mail, MessageSquare, User } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import ShadowDOM from 'react-shadow';
 import AuthImagePattern from "../components/AuthImagePattern";
 import toast from "react-hot-toast";
@@ -9,15 +9,17 @@ import toast from "react-hot-toast";
 const SignUpPagechat = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: "",
+    name: "",
     email: "",
     password: "",
+    role: "programmer", // Default role for chat signup
   });
 
   const { signup, isSigningUp } = useAuthStore();
+  const navigate = useNavigate();
 
   const validateForm = () => {
-    if (!formData.fullName.trim()) return toast.error("Full name is required");
+    if (!formData.name.trim()) return toast.error("Full name is required");
     if (!formData.email.trim()) return toast.error("Email is required");
     if (!/\S+@\S+\.\S+/.test(formData.email)) return toast.error("Invalid email format");
     if (!formData.password) return toast.error("Password is required");
@@ -26,12 +28,19 @@ const SignUpPagechat = () => {
     return true;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const success = validateForm();
 
-    if (success === true) signup(formData);
+    if (success === true) {
+      try {
+        await signup(formData);
+        navigate("/privatechats/home");
+      } catch (error) {
+        console.error("Signup error:", error);
+      }
+    }
   };
 
   return (
@@ -68,8 +77,8 @@ const SignUpPagechat = () => {
                   type="text"
                   className={`input input-bordered w-full pl-10`}
                   placeholder="John Doe"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
               </div>
             </div>

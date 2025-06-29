@@ -1,11 +1,23 @@
 // src/components/Navbarchat.jsx
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
 import { LogOut, MessageSquare, Settings, User } from "lucide-react";
 import ShadowDOM from 'react-shadow';
 
 const Navbarchat = () => {
   const { logout, authUser } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Even if logout fails, navigate to home
+      navigate("/");
+    }
+  };
 
   return (
     <ShadowDOM.div mode="open">
@@ -47,13 +59,20 @@ const Navbarchat = () => {
                     <span className="hidden sm:inline">Profile</span>
                   </Link>
 
-               <Link 
+                  <Link 
                     to={"/"} 
                     className="btn btn-sm gap-2"
                   >
-                    <LogOut className="size-5" />
                     <span className="hidden sm:inline">Go to Home</span>
-               </Link>
+                  </Link>
+
+                  <button 
+                    onClick={handleLogout}
+                    className="btn btn-sm gap-2 btn-outline"
+                  >
+                    <LogOut className="size-5" />
+                    <span className="hidden sm:inline">Logout</span>
+                  </button>
                 </>
               )}
             </div>

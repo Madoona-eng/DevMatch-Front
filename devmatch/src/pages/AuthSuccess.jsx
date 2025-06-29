@@ -25,6 +25,8 @@ export default function AuthSuccess() {
         })
         .then(user => {
           console.log('[AuthSuccess] user:', user);
+          // Normalize user object: ensure id is present
+          if (user && user._id && !user.id) user.id = user._id;
           if (user && user.email === email) {
             localStorage.setItem('devmatch_user', JSON.stringify(user));
             localStorage.setItem('token', token);

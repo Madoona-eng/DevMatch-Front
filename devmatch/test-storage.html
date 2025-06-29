@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LocalStorage Test</title>
+</head>
+<body>
+    <h1>LocalStorage Test</h1>
+    <div id="output"></div>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        // Test user object
+        const testUser = {
+            _id: "507f1f77bcf86cd799439011",
+            name: "John Doe",
+            email: "john@example.com",
+            role: "programmer"
+        };
+        
+        // Test storage functions
+        function testStorage() {
+            output.innerHTML = '<h2>Testing LocalStorage...</h2>';
+            
+            // Clear any existing data
+            localStorage.removeItem('devmatch_user');
+            localStorage.removeItem('token');
+            
+            // Test saving
+            try {
+                localStorage.setItem('devmatch_user', JSON.stringify(testUser));
+                localStorage.setItem('token', 'test-token-123');
+                output.innerHTML += '<p style="color: green;">✅ User saved to localStorage</p>';
+            } catch (error) {
+                output.innerHTML += `<p style="color: red;">❌ Error saving: ${error.message}</p>`;
+            }
+            
+            // Test reading
+            try {
+                const savedUser = JSON.parse(localStorage.getItem('devmatch_user'));
+                const token = localStorage.getItem('token');
+                
+                output.innerHTML += `<p>📖 Saved User: ${JSON.stringify(savedUser, null, 2)}</p>`;
+                output.innerHTML += `<p>🔑 Token: ${token}</p>`;
+                output.innerHTML += `<p>🆔 User ID: ${savedUser._id}</p>`;
+                
+                if (savedUser._id === testUser._id) {
+                    output.innerHTML += '<p style="color: green;">✅ User ID matches!</p>';
+                } else {
+                    output.innerHTML += '<p style="color: red;">❌ User ID mismatch!</p>';
+                }
+            } catch (error) {
+                output.innerHTML += `<p style="color: red;">❌ Error reading: ${error.message}</p>`;
+            }
+            
+            // Test clearing
+            try {
+                localStorage.removeItem('devmatch_user');
+                localStorage.removeItem('token');
+                const clearedUser = localStorage.getItem('devmatch_user');
+                const clearedToken = localStorage.getItem('token');
+                
+                if (!clearedUser && !clearedToken) {
+                    output.innerHTML += '<p style="color: green;">✅ Storage cleared successfully</p>';
+                } else {
+                    output.innerHTML += '<p style="color: red;">❌ Storage not cleared properly</p>';
+                }
+            } catch (error) {
+                output.innerHTML += `<p style="color: red;">❌ Error clearing: ${error.message}</p>`;
+            }
+        }
+        
+        // Run test on page load
+        testStorage();
+    </script>
+</body>
+</html> 
