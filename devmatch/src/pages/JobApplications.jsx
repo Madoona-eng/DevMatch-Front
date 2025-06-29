@@ -72,6 +72,18 @@ export default function JobApplications() {
     }
   };
 
+  // Handler to update job status
+  const handleJobStatusChange = async (e) => {
+    const newStatus = e.target.value;
+    if (!jobId || !job) return;
+    try {
+      await axiosInstance.put(`/jobs/${jobId}`, { status: newStatus });
+      setJob((prev) => ({ ...prev, status: newStatus }));
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to update job status');
+    }
+  };
+
   if (loading) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
@@ -100,10 +112,27 @@ export default function JobApplications() {
           <i className="bi bi-people me-2"></i>
           {jobId ? `Applications for: ${job?.title || 'Job not found'}` : 'All Job Applications'}
         </h2>
-        <button className="btn btn-outline-primary" onClick={() => navigate(-1)}>
-          <i className="bi bi-arrow-left me-1"></i>
-          Back
-        </button>
+        <div className="d-flex align-items-center gap-3">
+          {jobId && job && (
+            <div className="d-flex align-items-center">
+              <span className="me-2 fw-semibold">Status:</span>
+              <select
+                className="form-select form-select-sm"
+                style={{ width: 120 }}
+                value={job.status}
+                onChange={handleJobStatusChange}
+                disabled={loading}
+              >
+                <option value="open">Open</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
+          )}
+          <button className="btn btn-outline-primary" onClick={() => navigate(-1)}>
+            <i className="bi bi-arrow-left me-1"></i>
+            Back
+          </button>
+        </div>
       </div>
 
       {applications.length === 0 ? (

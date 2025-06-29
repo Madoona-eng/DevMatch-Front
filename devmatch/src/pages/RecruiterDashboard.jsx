@@ -36,7 +36,9 @@ export default function RecruiterDashboard() {
     description: '',
     specialization: '',
     governorate: '',
-    status: 'open'
+    status: 'open',
+    work_mode: 'onsite',
+    job_type: 'full-time'
   });
   const [jobErrors, setJobErrors] = useState({});
   const [isPaid, setIsPaid] = useState(false);
@@ -241,7 +243,9 @@ export default function RecruiterDashboard() {
         description: '',
         specialization: '',
         governorate: '',
-        status: 'open'
+        status: 'open',
+        work_mode: 'onsite',
+        job_type: 'full-time'
       });
       alert('Job posted successfully!');
     } catch (err) {
@@ -825,6 +829,32 @@ export default function RecruiterDashboard() {
                       >
                         <option value="open">Open</option>
                         <option value="closed">Closed</option>
+                      </select>
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Work Mode</label>
+                      <select
+                        className="form-control"
+                        name="work_mode"
+                        value={jobForm.work_mode}
+                        onChange={handleJobChange}
+                      >
+                        <option value="onsite">Onsite</option>
+                        <option value="remotely">Remotely</option>
+                      </select>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Job Type</label>
+                      <select
+                        className="form-control"
+                        name="job_type"
+                        value={jobForm.job_type}
+                        onChange={handleJobChange}
+                      >
+                        <option value="full-time">Full-time</option>
+                        <option value="part-time">Part-time</option>
+                        <option value="by task">By Task</option>
                       </select>
                     </div>
                   </div>

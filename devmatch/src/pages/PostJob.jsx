@@ -11,7 +11,9 @@ export default function PostJob() {
     title: '',
     description: '',
     specialization_id: '',
-    governorate_id: ''
+    governorate_id: '',
+    work_mode: 'onsite',
+    job_type: 'full-time'
   });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -50,7 +52,6 @@ export default function PostJob() {
 
   const validateField = (name, value) => {
     let error = '';
-    
     switch (name) {
       case 'title':
         if (!value.trim()) {
@@ -76,8 +77,17 @@ export default function PostJob() {
           error = 'Please select a location';
         }
         break;
+      case 'work_mode':
+        if (!value) {
+          error = 'Please select work mode';
+        }
+        break;
+      case 'job_type':
+        if (!value) {
+          error = 'Please select job type';
+        }
+        break;
     }
-    
     setErrors({ ...errors, [name]: error });
   };
 
@@ -116,7 +126,9 @@ export default function PostJob() {
         title: form.title,
         description: form.description,
         specialization: form.specialization_id, // backend expects specialization (string or id)
-        governorate: form.governorate_id // backend expects governorate (string or id)
+        governorate: form.governorate_id, // backend expects governorate (string or id)
+        work_mode: form.work_mode,
+        job_type: form.job_type
       };
       await postJob(newJob);
       alert('🎉 Job posted successfully!');
@@ -276,6 +288,63 @@ export default function PostJob() {
                   <div className="text-danger small mt-1">
                     <i className="bi bi-exclamation-circle me-1"></i>
                     {errors.governorate_id}
+                  </div>
+                )}
+              </div>
+
+              <div className="mb-3">
+                <label htmlFor="work_mode" className="form-label fw-semibold" style={{ color: '#007bff' }}>
+                  <i className="bi bi-building me-1"></i> Work Mode
+                </label>
+                <select
+                  name="work_mode"
+                  className={getFieldClass('work_mode')}
+                  value={form.work_mode}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  style={{
+                    borderRadius: '10px',
+                    padding: '12px 16px',
+                    borderColor: touched.work_mode && !errors.work_mode && form.work_mode ? '#007bff' : undefined
+                  }}
+                >
+                  <option value="">Select work mode</option>
+                  <option value="onsite">Onsite</option>
+                  <option value="remotely">Remotely</option>
+                </select>
+                {touched.work_mode && errors.work_mode && (
+                  <div className="text-danger small mt-1">
+                    <i className="bi bi-exclamation-circle me-1"></i>
+                    {errors.work_mode}
+                  </div>
+                )}
+              </div>
+
+              <div className="mb-4">
+                <label htmlFor="job_type" className="form-label fw-semibold" style={{ color: '#007bff' }}>
+                  <i className="bi bi-clock me-1"></i> Job Type
+                </label>
+                <select
+                  name="job_type"
+                  className={getFieldClass('job_type')}
+                  value={form.job_type}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  style={{
+                    borderRadius: '10px',
+                    padding: '12px 16px',
+                    borderColor: touched.job_type && !errors.job_type && form.job_type ? '#007bff' : undefined
+                  }}
+                >
+                  <option value="">Select job type</option>
+                  <option value="full-time">Full-time</option>
+                  <option value="part-time">Part-time</option>
+                  <option value="by task">By Task</option>
+                </select>
+                {touched.job_type && errors.job_type && (
+                  <div className="text-danger small mt-1">
+                    <i className="bi bi-exclamation-circle me-1"></i>
+                    {errors.job_type}
                   </div>
                 )}
               </div>

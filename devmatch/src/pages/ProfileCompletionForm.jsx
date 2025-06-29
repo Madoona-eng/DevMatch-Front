@@ -30,6 +30,7 @@ function ProfileCompletionForm() {
   const [imagePreview, setImagePreview] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [github, setGithub] = useState('');
   const navigate = useNavigate();
 
   const handleImageChange = (e) => {
@@ -48,6 +49,7 @@ function ProfileCompletionForm() {
     if (!skills.trim()) return setError('Please enter Skills') || false;
     if (!technology.trim()) return setError('Please enter Technology') || false;
     if (!imageFile) return setError('Please upload an Image') || false;
+    if (!github.trim()) return setError('Please enter your GitHub link') || false;
     return true;
   };
 
@@ -91,6 +93,7 @@ function ProfileCompletionForm() {
         skills,
         technology: techArray,
         image: imageBase64,
+        github,
       };
 
       // Use shared axios instance for PUT
@@ -199,6 +202,17 @@ function ProfileCompletionForm() {
           value={technology}
           onChange={(e) => setTechnology(e.target.value)}
           isInvalid={!!error && !technology.trim()}
+        />
+      </Form.Group>
+
+      <Form.Group controlId="github" className="mb-3">
+        <Form.Label>GitHub Link</Form.Label>
+        <Form.Control
+          type="url"
+          placeholder="https://github.com/yourusername"
+          value={github}
+          onChange={(e) => setGithub(e.target.value)}
+          isInvalid={!!error && !github.trim()}
         />
       </Form.Group>
 
