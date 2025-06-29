@@ -44,14 +44,18 @@ export default function ChooseRole() {
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center min-vh-100">
-      <div className="card p-4 shadow" style={{ minWidth: 320 }}>
-        <h4 className="mb-4 text-center">Choose your role</h4>
-        <button className="btn btn-primary w-100 mb-3" onClick={() => handleChoose('programmer')}>
-          I am a Programmer
+    <div className="min-vh-100 d-flex align-items-center justify-content-center" style={{ background: 'linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%)' }}>
+      <div className="card shadow-lg border-0 p-5" style={{ borderRadius: 24, minWidth: 350, maxWidth: 400 }}>
+        <div className="text-center mb-4">
+          <img src="/logo192.png" alt="DevMatch Logo" style={{ width: 60, marginBottom: 12 }} />
+          <h3 className="fw-bold mb-2" style={{ color: '#007bff' }}>Welcome to DevMatch!</h3>
+          <p className="text-muted mb-0">Please choose your role to continue</p>
+        </div>
+        <button className="btn btn-primary w-100 py-3 mb-3 d-flex align-items-center justify-content-center fs-5" style={{ borderRadius: 12 }} onClick={() => handleChoose('programmer')}>
+          <i className="bi bi-laptop me-2 fs-4"></i> I am a Programmer
         </button>
-        <button className="btn btn-outline-primary w-100" onClick={() => handleChoose('recruiter')}>
-          I am a Recruiter
+        <button className="btn btn-outline-primary w-100 py-3 d-flex align-items-center justify-content-center fs-5" style={{ borderRadius: 12 }} onClick={() => handleChoose('recruiter')}>
+          <i className="bi bi-person-badge me-2 fs-4"></i> I am a Recruiter
         </button>
       </div>
     </div>

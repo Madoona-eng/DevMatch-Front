@@ -28,7 +28,7 @@ import JobApplication from "./pages/JobApplication";
 import PaymentPage from "./pages/PaymentPage";
 import AuthSuccess from "./pages/AuthSuccess";
 import ChooseRole from "./pages/ChooseRole";
-import VerifyEmailPage from "./pages/VerifyEmailPage";
+import EditJob from "./pages/EditJob";
 
 // Components & Stores
 import { AuthProvider } from "./pages/AuthContext";
@@ -78,7 +78,7 @@ function App() {
             <Route path="/payment" element={<PaymentPage />} />
             <Route path="/auth-success" element={<AuthSuccess />} />
             <Route path="/choose-role" element={<ChooseRole />} />
-            <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/edit-job/:id" element={<EditJob />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

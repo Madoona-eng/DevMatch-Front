@@ -30,7 +30,11 @@ export default function AuthSuccess() {
             localStorage.setItem('token', token);
             login(user);
             // إذا كان الدور pending أو غير موجود، انتقل لاختيار الدور
-            if (!user.role || user.role === 'pending') {
+            if (user.isProfileComplete) {
+              // If profile is complete, go to home
+              console.log('[AuthSuccess] User profile complete, redirecting to /');
+              navigate('/');
+            } else if (!user.role || user.role === 'pending') {
               console.log('[AuthSuccess] User role pending, redirecting to /choose-role');
               navigate('/choose-role', { state: { token, userId: user._id || user.id } });
             } else if (user.role === 'programmer') {

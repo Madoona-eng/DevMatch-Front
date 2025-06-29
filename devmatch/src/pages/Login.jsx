@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -15,16 +15,32 @@ export default function Login() {
   const [touched, setTouched] = useState({});
   const [apiError, setApiError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [verificationMsg, setVerificationMsg] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [searchParams] = useSearchParams();
-  let verificationMsg = '';
-  const verified = searchParams.get('verified');
-  const error = searchParams.get('error');
-  if (verified === 'success') verificationMsg = 'Your email has been verified! Please log in.';
-  else if (verified === 'already') verificationMsg = 'Your email is already verified. Please log in.';
-  else if (error === 'invalidtoken') verificationMsg = 'Invalid or expired verification link.';
-  else if (error === 'notfound') verificationMsg = 'User not found.';
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const verified = params.get('verified');
+    if (verified) {
+      switch (verified) {
+        case 'success':
+          setVerificationMsg('Your email has been verified! You can now log in.');
+          break;
+        case 'already':
+          setVerificationMsg('Your email is already verified. Please log in.');
+          break;
+        case 'invalidtoken':
+          setVerificationMsg('Invalid or expired verification link.');
+          break;
+        case 'notfound':
+          setVerificationMsg('User not found for verification.');
+          break;
+        default:
+          setVerificationMsg('');
+      }
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
