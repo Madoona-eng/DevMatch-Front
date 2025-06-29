@@ -194,7 +194,7 @@ export const useChatStore = create((set, get) => ({
     set({ isMessagesLoading: true });
     try {
       const res = await axiosInstance.get(`/messages/${userId}`);
-      // تصفية الرسائل المكررة
+ 
       const uniqueMessages = res.data.filter((msg, index, self) =>
         index === self.findIndex(m => m._id === msg._id)
       );
@@ -211,7 +211,7 @@ export const useChatStore = create((set, get) => ({
     const targetUserId = userId || (selectedUser && selectedUser._id);
     const authUser = useAuthStore.getState().authUser;
 
-    const tempId = `temp-${Date.now()}`; // إنشاء tempId فريد
+    const tempId = `temp-${Date.now()}`; 
     const tempMessage = {
       _id: tempId,
       senderId: authUser.id,

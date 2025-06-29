@@ -29,6 +29,9 @@ import JobApplications from "./pages/JobApplications";
 import ApplicationDetails from "./pages/ApplicationDetails";
 import JobApplication from "./pages/JobApplication";
 import PaymentPage from "./pages/PaymentPage";
+import AuthSuccess from "./pages/AuthSuccess";
+import ChooseRole from "./pages/ChooseRole";
+import EditJob from "./pages/EditJob";
 
 // Stores & Contexts
 import { useAuthStore } from './store/useAuthStore';
@@ -75,10 +78,13 @@ function AppContent() {
           <Route path="/complete-profile" element={<CompleteProfile />} />
           <Route path="/recruiter-dashboard/jobs/:jobId/applications" element={<JobApplications />} />
           <Route path="/recruiter-dashboard/applications/:id" element={<ApplicationDetails />} />
-          <Route path="/Freelancers" element={<Freelancers />} />
-          <Route path="/CompleteFreelancerProfile" element={<CompleteFreelancerProfile />} />
-          <Route path="/FreelancerProfile/:id" element={<FreelancerProfile />} />
+          <Route path="/freelancers" element={<Freelancers />} />
+          <Route path="/completefreelancerprofile" element={<CompleteFreelancerProfile />} />
+          <Route path="/freelancerprofile/:id" element={<FreelancerProfile />} />
           <Route path="/payment" element={<PaymentPage />} />
+          <Route path="/auth-success" element={<AuthSuccess />} />
+          <Route path="/choose-role" element={<ChooseRole />} />
+          <Route path="/edit-job/:id" element={<EditJob />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

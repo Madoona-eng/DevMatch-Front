@@ -715,6 +715,14 @@ export default function RecruiterDashboard() {
                                   <i className="bi bi-people me-1"></i>
                                   View Applications
                                 </button>
+                                <Link 
+                                  to={`/edit-job/${job._id || job.id}`}
+                                  className="btn btn-sm btn-outline-warning"
+                                  title="Edit Job"
+                                >
+                                  <i className="bi bi-pencil-square me-1"></i>
+                                  Edit
+                                </Link>
                                 <button 
                                   className="btn btn-sm btn-outline-danger"
                                   onClick={() => handleDeleteJob(job._id || job.id)}

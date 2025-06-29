@@ -8,6 +8,7 @@ export const useNotification = () => useContext(NotificationContext);
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [socket, setSocket] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("devmatch_user"));
@@ -43,6 +44,7 @@ export const NotificationProvider = ({ children }) => {
         console.debug("[Notification] Notification received:", data);
         alert(data.message);
         setNotifications((prev) => [data, ...prev]);
+        setUnreadCount((prev) => prev + 1);
       });
 
       setSocket(newSocket);
@@ -53,8 +55,11 @@ export const NotificationProvider = ({ children }) => {
     }
   }, []);
 
+  // دالة لتصفير العداد عند فتح قائمة الإشعارات
+  const markAllAsRead = () => setUnreadCount(0);
+
   return (
-    <NotificationContext.Provider value={{ notifications }}>
+    <NotificationContext.Provider value={{ notifications, unreadCount, markAllAsRead }}>
       {children}
     </NotificationContext.Provider>
   );

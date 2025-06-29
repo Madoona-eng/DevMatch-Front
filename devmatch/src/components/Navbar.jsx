@@ -10,7 +10,7 @@ import { useAuth } from '../pages/AuthContext';
 
 export default function Navbar() {
   const { user, logout, isAuthenticated, isRecruiter, isProgrammer } = useAuth();
-  const { notifications } = useNotification();
+  const { notifications, unreadCount, markAllAsRead } = useNotification();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = React.useState(false);
 
@@ -25,7 +25,10 @@ export default function Navbar() {
     });
   };
 
-  const handleBellClick = () => setShowNotifications((prev) => !prev);
+  const handleBellClick = () => {
+    setShowNotifications((prev) => !prev);
+    if (!showNotifications) markAllAsRead();
+  };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom px-3">
@@ -124,12 +127,12 @@ export default function Navbar() {
             onClick={handleBellClick}
           >
             <FontAwesomeIcon icon={faBell} />
-            {notifications.length > 0 && (
+            {unreadCount > 0 && (
               <span
                 className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
                 style={{ fontSize: '0.7rem' }}
               >
-                {notifications.length}
+                {unreadCount}
               </span>
             )}
           </button>
