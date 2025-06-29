@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Container, Row, Col, Spinner, Modal, Button } from 'react-bootstrap';
-import Sidebar from '../components/Sidebarchat';
+
 import ChatMessage from '../components/ChatMessage';
 import MessageInput from '../components/MessageInput';
 import CommentSection from '../components/CommentSection';
@@ -130,7 +130,7 @@ export default function ChatPage() {
           comments: selectedMessage.comments || [],
           user: {
             ...(data.user || {}),
-            id: data.user?._id || data.user?.id
+            id: data.user?._id || e43w4rw3a.user?.id
           }
         });
       }
