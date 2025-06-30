@@ -31,6 +31,7 @@ export default function JobDetails() {
   const isProgrammer = currentUser?.role === 'programmer';
 
   const [job, setJob] = useState(null);
+  const [recruiterName, setRecruiterName] = useState('');
   const [hasApplied, setHasApplied] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -46,6 +47,7 @@ export default function JobDetails() {
         const res = await axiosInstance.get(`/jobs/with-check/${id}`);
         setJob(res.data.job);
         setHasApplied(res.data.hasApplied);
+        setRecruiterName(res.data.recruiterName || 'Unknown');
       } catch (err) {
         console.error('Error loading job:', {
           message: err.message,
@@ -116,6 +118,50 @@ export default function JobDetails() {
                   </div>
                 </div>
 
+                {/* Additional Job Details */}
+                <div className="row g-3 mb-4">
+                  <div className="col-md-6">
+                    <div className="p-3 bg-light rounded border recruiter-dashboard-desc h-100">
+                      <span className="fw-semibold text-primary">Specialization:</span>
+                      <div className="fs-6 text-dark">{job.specialization}</div>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="p-3 bg-light rounded border recruiter-dashboard-desc h-100">
+                      <span className="fw-semibold text-primary">Governorate:</span>
+                      <div className="fs-6 text-dark">{job.governorate}</div>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="p-3 bg-light rounded border recruiter-dashboard-desc h-100">
+                      <span className="fw-semibold text-primary">Recruiter:</span>
+                      <div className="fs-6 text-dark">
+                        {recruiterName}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="p-3 bg-light rounded border recruiter-dashboard-desc h-100">
+                      <span className="fw-semibold text-primary">Created At:</span>
+                      <div className="fs-6 text-dark">{new Date(job.created_at).toLocaleString()}</div>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="p-3 bg-light rounded border recruiter-dashboard-desc h-100">
+                      <span className="fw-semibold text-primary">Work Mode:</span>
+                      <div className="fs-6 text-dark">{job.work_mode === 'onsite' ? 'Onsite' : job.work_mode === 'remotely' ? 'Remotely' : '-'}</div>
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="p-3 bg-light rounded border recruiter-dashboard-desc h-100">
+                      <span className="fw-semibold text-primary">Job Type:</span>
+                      <div className="fs-6 text-dark">
+                        {job.job_type === 'full-time' ? 'Full-time' : job.job_type === 'part-time' ? 'Part-time' : job.job_type === 'by task' ? 'By Task' : '-'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="d-flex justify-content-between border-top pt-4 align-items-center recruiter-dashboard-footer">
                   <Link to="/jobs" className="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold">
                     <i className="bi bi-arrow-left me-2"></i>Back to Jobs
@@ -139,7 +185,6 @@ export default function JobDetails() {
                     {isProgrammer && job.status !== 'open' && !hasApplied && (
                       <span className="text-muted fs-6">Job is closed</span>
                     )}
-                    {/* No recruiter message */}
                   </div>
                 </div>
 

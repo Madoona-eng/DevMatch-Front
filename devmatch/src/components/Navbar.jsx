@@ -81,6 +81,13 @@ export default function Navbar() {
   </a>
 </li>
 
+<Link to="/following" className="nav-link">
+  Following
+</Link>
+<Link to="/my-applications" className="nav-link">
+  My Applications
+</Link>
+
 <li className="nav-item">
   <a className="nav-link" href="/Freelancers">Freelancers</a>
 </li>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { editJob, fetchRecruiterJobs } from '../lib/recruiterApi';
@@ -46,7 +47,7 @@ export default function EditJob() {
     setError('');
     try {
       await editJob(id, form);
-      alert('Job updated!');
+      toast.success('Job updated!');
       navigate('/recruiter-dashboard');
     } catch (err) {
       setError('Failed to update job.');

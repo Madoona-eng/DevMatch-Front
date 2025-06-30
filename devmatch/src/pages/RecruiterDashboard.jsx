@@ -36,7 +36,9 @@ export default function RecruiterDashboard() {
     description: '',
     specialization: '',
     governorate: '',
-    status: 'open'
+    status: 'open',
+    work_mode: 'onsite',
+    job_type: 'full-time'
   });
   const [jobErrors, setJobErrors] = useState({});
   const [isPaid, setIsPaid] = useState(false);
@@ -204,7 +206,7 @@ export default function RecruiterDashboard() {
       };
       login(updatedUser);
       setEditing(false);
-      alert('Profile updated successfully!');
+      // alert removed
     } catch (err) {
       console.error('Error updating profile:', err);
       setError(
@@ -225,7 +227,7 @@ export default function RecruiterDashboard() {
 
     // Restrict recruiters to 5 jobs unless payment is made or recruiterPaid=1 in localStorage
     if (jobs.length >= 5 && !isPaid && localStorage.getItem('recruiterPaid') !== '1') {
-      alert('You have reached the limit of 5 posted jobs. Please make a payment to post more jobs.');
+      // alert removed
       navigate('/payment', { state: { fromDashboard: true } });
       return;
     }
@@ -241,9 +243,11 @@ export default function RecruiterDashboard() {
         description: '',
         specialization: '',
         governorate: '',
-        status: 'open'
+        status: 'open',
+        work_mode: 'onsite',
+        job_type: 'full-time'
       });
-      alert('Job posted successfully!');
+      // alert removed
     } catch (err) {
       console.error('Error posting job:', err);
       setError('Failed to post job. Please try again.');
@@ -290,7 +294,7 @@ export default function RecruiterDashboard() {
       if (window.confirm('Are you sure you want to delete this job?')) {
         await axiosInstance.delete(`/jobs/${jobId}`);
         setJobs(prev => prev.filter(job => job._id !== jobId && job.id !== jobId));
-        alert('Job deleted successfully');
+        // alert removed
       }
     } catch (err) {
       console.error('Error deleting job:', err);
@@ -715,14 +719,6 @@ export default function RecruiterDashboard() {
                                   <i className="bi bi-people me-1"></i>
                                   View Applications
                                 </button>
-                                <Link 
-                                  to={`/edit-job/${job._id || job.id}`}
-                                  className="btn btn-sm btn-outline-warning"
-                                  title="Edit Job"
-                                >
-                                  <i className="bi bi-pencil-square me-1"></i>
-                                  Edit
-                                </Link>
                                 <button 
                                   className="btn btn-sm btn-outline-danger"
                                   onClick={() => handleDeleteJob(job._id || job.id)}
@@ -833,6 +829,32 @@ export default function RecruiterDashboard() {
                       >
                         <option value="open">Open</option>
                         <option value="closed">Closed</option>
+                      </select>
+                    </div>
+
+                    <div className="col-md-6">
+                      <label className="form-label">Work Mode</label>
+                      <select
+                        className="form-control"
+                        name="work_mode"
+                        value={jobForm.work_mode}
+                        onChange={handleJobChange}
+                      >
+                        <option value="onsite">Onsite</option>
+                        <option value="remotely">Remotely</option>
+                      </select>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label">Job Type</label>
+                      <select
+                        className="form-control"
+                        name="job_type"
+                        value={jobForm.job_type}
+                        onChange={handleJobChange}
+                      >
+                        <option value="full-time">Full-time</option>
+                        <option value="part-time">Part-time</option>
+                        <option value="by task">By Task</option>
                       </select>
                     </div>
                   </div>

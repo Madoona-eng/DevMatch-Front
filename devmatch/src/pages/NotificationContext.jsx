@@ -42,7 +42,7 @@ export const NotificationProvider = ({ children }) => {
 
       newSocket.on(`application-update-${userId}`, (data) => {
         console.debug("[Notification] Notification received:", data);
-        alert(data.message);
+        // alert removed
         setNotifications((prev) => [data, ...prev]);
         setUnreadCount((prev) => prev + 1);
       });

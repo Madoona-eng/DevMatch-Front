@@ -32,13 +32,16 @@ import PaymentPage from "./pages/PaymentPage";
 import AuthSuccess from "./pages/AuthSuccess";
 import ChooseRole from "./pages/ChooseRole";
 import EditJob from "./pages/EditJob";
-
+import FollowingPage from './pages/FollowingPage';
+import ApplicationsPage from './pages/ApplicationsPage';
 // Stores & Contexts
 import { useAuthStore } from './store/useAuthStore';
 import { useThemeStore } from "./store/useThemeStore";
 import { useAuth } from './pages/AuthContext';
 import { AuthProvider } from "./pages/AuthContext";
 import { NotificationProvider } from "./pages/NotificationContext";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function AppContent() {
   const { theme } = useThemeStore();
@@ -53,6 +56,7 @@ function AppContent() {
 
   return (
     <NotificationProvider>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
       <div className="app-container" data-theme={theme}>
         <Routes>
           {/* Private Chat Routes */}
@@ -85,6 +89,8 @@ function AppContent() {
           <Route path="/auth-success" element={<AuthSuccess />} />
           <Route path="/choose-role" element={<ChooseRole />} />
           <Route path="/edit-job/:id" element={<EditJob />} />
+          <Route path="/following" element={<FollowingPage />} />
+          <Route path="/my-applications" element={<ApplicationsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

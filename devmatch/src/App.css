@@ -131,3 +131,33 @@ body, html, #root {
   width: 100% !important;
   max-width: 100vw !important;
 }
+/* Add to your main CSS file */
+.application-card {
+  transition: all 0.3s ease;
+}
+
+.application-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(58, 134, 255, 0.1);
+}
+
+.status-badge {
+  font-size: 0.75rem;
+  padding: 0.35em 0.65em;
+}
+
+/* Status colors */
+.status-pending {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.status-accepted {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.status-rejected {
+  background-color: #dc3545;
+  color: #fff;
+}

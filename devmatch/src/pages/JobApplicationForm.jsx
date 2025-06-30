@@ -125,7 +125,7 @@ export default function JobApplicationForm() {
     if (!validate()) return;
     setIsSubmitting(true);
     if (!authUser) {
-      alert('You must be logged in to apply.');
+      // alert removed
       setIsSubmitting(false);
       return;
     }
@@ -145,7 +145,7 @@ export default function JobApplicationForm() {
     );
     if (alreadyApplied) {
       setHasApplied(true);
-      alert('You already applied to this job!');
+      // alert removed
       setIsSubmitting(false);
       localStorage.setItem('applications', JSON.stringify(applications));
       return;
@@ -155,7 +155,7 @@ export default function JobApplicationForm() {
       const res = await axios.get(`http://localhost:5000/api/applications?job_id=${id}&applicant_id=${authUser._id || authUser.id}`);
       if (res.data && res.data.length > 0) {
         setHasApplied(true);
-        alert('You already applied to this job!');
+        // alert removed
         setIsSubmitting(false);
         return;
       }
@@ -185,7 +185,7 @@ export default function JobApplicationForm() {
       });
       localStorage.setItem('applications', JSON.stringify(applications));
       setHasApplied(true);
-      alert('Application submitted successfully!');
+      // alert removed
       navigate(`/jobs/${id}`);
     } catch (error) {
       // If backend is down, fallback to localStorage
@@ -194,7 +194,7 @@ export default function JobApplicationForm() {
         localStorage.setItem(key, JSON.stringify(appliedJobs));
       }
       setHasApplied(true);
-      alert('Application submitted successfully (offline mode)!');
+      // alert removed
       navigate(`/jobs/${id}`);
     } finally {
       setIsSubmitting(false);

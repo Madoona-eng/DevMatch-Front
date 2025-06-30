@@ -1,4 +1,5 @@
 import React from 'react';
+import { toast } from 'react-toastify';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 export default function ChooseRole() {
@@ -36,10 +37,10 @@ export default function ChooseRole() {
           navigate('/complete-profile');
         }
       } else {
-        alert('Failed to update role. Please try again.');
+        toast.error('Failed to update role. Please try again.');
       }
     } catch (err) {
-      alert('Error updating role. Please try again.');
+      toast.error('Error updating role. Please try again.');
     }
   };
 

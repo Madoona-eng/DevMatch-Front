@@ -1,5 +1,6 @@
 // CompleteProfile.js
 import React, { useState, useEffect, useRef } from 'react';
+import { toast } from 'react-toastify';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -144,7 +145,7 @@ export default function CompleteProfile() {
       };
 
       login(updatedUser);
-      alert('Profile completed successfully! 🎉');
+      toast.success('Profile completed successfully! 🎉');
       navigate('/'); // Navigate to home after completion
     } catch (err) {
       console.error('Error updating profile:', err);

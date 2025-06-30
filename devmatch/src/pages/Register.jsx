@@ -154,7 +154,7 @@ export default function Register() {
       payload.cv_url = form.cv_url;
     }
     await axios.post('http://localhost:5000/api/auth/signup', payload);
-    alert('🎉 Registration successful! Welcome to DevMatch!');
+    // alert removed
     navigate('/login');
   } catch (err) {
     console.error('Registration error:', err);

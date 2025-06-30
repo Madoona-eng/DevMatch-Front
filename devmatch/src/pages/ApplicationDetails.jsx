@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { useParams, useNavigate } from 'react-router-dom';
 import { axiosInstance } from '../lib/axios';
 import { useAuth } from './AuthContext';
@@ -53,7 +54,7 @@ export default function ApplicationDetails() {
         await axiosInstance.put(`/applications/reject/${applicationId}`);
       }
       setApplication(prev => ({ ...prev, status }));
-      alert('Application status updated successfully!');
+      toast.success('Application status updated successfully!');
     } catch (err) {
       let msg = 'Failed to update application status';
       if (err.response?.data?.message) msg = err.response.data.message;
