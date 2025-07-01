@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuthStore } from '../store/useAuthStore';
-import { getUserFromStorage, saveUserToStorage, clearUserFromStorage } from '../utils/userUtils';
-
 const AuthContext = createContext();
 
 export const useAuth = () => {
@@ -17,35 +15,36 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = getUserFromStorage();
+    const savedUser = localStorage.getItem('devmatch_user');
     if (savedUser) {
-      setUser(savedUser);
-      // Sync with useAuthStore
-      useAuthStore.getState().syncWithAuthContext(savedUser);
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        localStorage.removeItem('devmatch_user');
+      }
     }
     setLoading(false);
   }, []);
 
   const login = (userData) => {
     setUser(userData);
-    saveUserToStorage(userData);
-    // Sync with useAuthStore
-    useAuthStore.getState().syncWithAuthContext(userData);
+    localStorage.setItem('devmatch_user', JSON.stringify(userData));
+     const { connectSocket } = useAuthStore.getState();
+      connectSocket(); 
   };
 
   const logout = () => {
     setUser(null);
-    clearUserFromStorage();
-    // Sync with useAuthStore
-    useAuthStore.getState().syncWithAuthContext(null);
+    localStorage.removeItem('devmatch_user');
+    const { disconnectSocket } = useAuthStore.getState();
+    disconnectSocket();
   };
 
   const updateUser = (updatedData) => {
     const newUser = { ...user, ...updatedData };
     setUser(newUser);
-    saveUserToStorage(newUser);
-    // Sync with useAuthStore
-    useAuthStore.getState().syncWithAuthContext(newUser);
+    localStorage.setItem('devmatch_user', JSON.stringify(newUser));
   };
 
   const value = {

@@ -66,13 +66,7 @@ const Navbarchat = () => {
                     <span className="hidden sm:inline">Go to Home</span>
                   </Link>
 
-                  <button 
-                    onClick={handleLogout}
-                    className="btn btn-sm gap-2 btn-outline"
-                  >
-                    <LogOut className="size-5" />
-                    <span className="hidden sm:inline">Logout</span>
-                  </button>
+             
                 </>
               )}
             </div>

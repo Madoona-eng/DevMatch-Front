@@ -22,6 +22,7 @@ export default function CompleteProfile() {
 
   const [preview, setPreview] = useState('');
   const [logoFile, setLogoFile] = useState(null);
+  const [logoBase64, setLogoBase64] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,12 +64,14 @@ export default function CompleteProfile() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
+        setLogoBase64(reader.result); // Store base64 string
       };
       reader.readAsDataURL(file);
       setLogoFile(file);
     } else {
       setPreview('');
       setLogoFile(null);
+      setLogoBase64('');
     }
   };
 
@@ -116,59 +119,47 @@ export default function CompleteProfile() {
 
     setLoading(true);
     try {
-      const formData = new FormData();
-      
-      // Append only expected fields
-      Object.entries(form).forEach(([key, value]) => {
-        formData.append(key, value);
-      });
-      
-      if (logoFile) {
-        formData.append('image', logoFile);
+      // Prepare payload for JSON (not FormData)
+      const payload = { ...form };
+      if (logoBase64) {
+        payload.image_base64 = logoBase64;
       }
 
       const response = await axios.post(
         'http://localhost:5000/api/profile/recruiter',
-        formData,
+        payload,
         {
           headers: {
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': 'application/json',
             Authorization: `Bearer ${token || (user?.token || '')}`
           }
         }
       );
 
+      // Always update both localStorage and context with the latest user and token
       const updatedUser = {
         ...user,
         ...response.data.user,
         isProfileComplete: true
       };
-
+      localStorage.setItem('devmatch_user', JSON.stringify(updatedUser));
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+      }
       login(updatedUser);
       toast.success('Profile completed successfully! 🎉');
       navigate('/'); // Navigate to home after completion
     } catch (err) {
       console.error('Error updating profile:', err);
       let errorMessage = 'Failed to save profile. Please try again.';
-      
       if (err.response) {
         console.error('Backend error response:', err.response.data);
-        
-        // Handle different error formats
         if (Array.isArray(err.response.data?.errors)) {
           errorMessage = err.response.data.errors.map(e => e.msg || e).join(', ');
         } else if (typeof err.response.data?.message === 'string') {
           errorMessage = err.response.data.message;
-          
-          // Handle Multer errors
-          if (errorMessage.includes('Only image files are allowed')) {
-            errorMessage = 'Invalid file type. Please upload an image (JPEG, PNG, GIF).';
-          } else if (errorMessage.includes('File too large')) {
-            errorMessage = 'File is too large. Maximum size is 5MB.';
-          }
         }
       }
-      
       setErrors(prev => ({
         ...prev,
         server: errorMessage

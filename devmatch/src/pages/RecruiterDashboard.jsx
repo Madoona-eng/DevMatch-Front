@@ -24,7 +24,7 @@ export default function RecruiterDashboard() {
     company_website: '',
     company_size: '',
     linkedin: '',
-    logo_url: '',
+    image: '',
     location: '',
     founded_year: ''
   });
@@ -69,13 +69,20 @@ export default function RecruiterDashboard() {
         if (userData.isPaid) {
           localStorage.removeItem('recruiterPaid');
         }
+        // If image is a relative path, convert to absolute URL for <img src>
+        let imageUrl = userData.image || '';
+        if (imageUrl && !imageUrl.startsWith('data:') && !imageUrl.startsWith('http')) {
+          // Remove leading 'public' if present, and prepend server URL
+          imageUrl = imageUrl.replace(/^public[\\/]/, '');
+          imageUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000/'}${imageUrl}`;
+        }
         setForm({
           company_name: userData.company_name || '',
           company_description: userData.company_description || '',
           company_website: userData.company_website || '',
           company_size: userData.company_size || '',
           linkedin: userData.linkedin || '',
-          logo_url: userData.image || '',
+          image: imageUrl,
           location: userData.location || '',
           founded_year: userData.founded_year || ''
         });
@@ -195,18 +202,30 @@ export default function RecruiterDashboard() {
 
     try {
       setLoading(true);
-      const response = await axiosInstance.put(
+      await axiosInstance.put(
         '/profile/recruiter',
         form
       );
-
-      const updatedUser = {
-        ...user,
-        ...form
-      };
-      login(updatedUser);
+      // Refetch the latest profile data after update
+      const userRes = await axiosInstance.get('/profile/recruiter');
+      const userData = userRes.data.user;
+      let imageUrl = userData.image || '';
+      if (imageUrl && !imageUrl.startsWith('data:') && !imageUrl.startsWith('http')) {
+        imageUrl = imageUrl.replace(/^public[\\/]/, '');
+        imageUrl = `${process.env.REACT_APP_API_URL || 'http://localhost:5000/'}${imageUrl}`;
+      }
+      setForm({
+        company_name: userData.company_name || '',
+        company_description: userData.company_description || '',
+        company_website: userData.company_website || '',
+        company_size: userData.company_size || '',
+        linkedin: userData.linkedin || '',
+        image: imageUrl,
+        location: userData.location || '',
+        founded_year: userData.founded_year || ''
+      });
+      login({ ...user, ...userData, image: imageUrl });
       setEditing(false);
-      // alert removed
     } catch (err) {
       console.error('Error updating profile:', err);
       setError(
@@ -262,7 +281,7 @@ export default function RecruiterDashboard() {
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64String = reader.result;
-        setForm(prev => ({ ...prev, logo_url: base64String }));
+        setForm(prev => ({ ...prev, image: base64String }));
       };
       reader.readAsDataURL(file);
     }
@@ -339,9 +358,9 @@ export default function RecruiterDashboard() {
               <div className="card border-0 shadow-sm">
                 <div className="card-body">
                   <div className="text-center mb-4">
-                    {form.logo_url ? (
+                    {form.image ? (
                       <img 
-                        src={form.logo_url} 
+                        src={form.image} 
                         alt="Company logo" 
                         className="rounded-circle mb-3" 
                         style={{ width: '100px', height: '100px', objectFit: 'cover' }}
@@ -434,16 +453,6 @@ export default function RecruiterDashboard() {
                             {errors.company_name && (
                               <div className="invalid-feedback">{errors.company_name}</div>
                             )}
-                          </div>
-
-                          <div className="col-md-6">
-                            <label className="form-label">Company Logo</label>
-                            <input
-                              type="file"
-                              className="form-control"
-                              onChange={handleFileChange}
-                              accept="image/*"
-                            />
                           </div>
 
                           <div className="col-12">
@@ -559,9 +568,9 @@ export default function RecruiterDashboard() {
                     ) : (
                       <div className="row">
                         <div className="col-md-4 text-center mb-4 mb-md-0">
-                          {form.logo_url ? (
+                          {form.image ? (
                             <img 
-                              src={form.logo_url} 
+                              src={form.image} 
                               alt="Company logo" 
                               className="img-fluid rounded" 
                               style={{ maxHeight: '200px' }}
