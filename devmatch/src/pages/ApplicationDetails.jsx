@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
+import { showErrorToast } from '../lib/toast';
 import { useParams, useNavigate } from 'react-router-dom';
 import { axiosInstance } from '../lib/axios';
 import { useAuth } from './AuthContext';
 import { useChatStore } from '../store/useChatStore';
 import { MessageSquare } from 'lucide-react';
-
+import Footer from '../components/Footer'; // Make sure the Footer path is correct
+import Navbar from '../components/Navbar'; 
 export default function ApplicationDetails() {
   const params = useParams();
   const applicationId = params.applicationId || params.id;
@@ -54,7 +56,7 @@ export default function ApplicationDetails() {
         await axiosInstance.put(`/applications/reject/${applicationId}`);
       }
       setApplication(prev => ({ ...prev, status }));
-      toast.success('Application status updated successfully!');
+      toast.success('Congratulations! You have been accepted for the job.');
     } catch (err) {
       let msg = 'Failed to update application status';
       if (err.response?.data?.message) msg = err.response.data.message;
@@ -85,9 +87,10 @@ export default function ApplicationDetails() {
   }
 
   if (error) {
+    showErrorToast(error);
     return (
       <div className="container py-5 text-center">
-        <div className="alert alert-danger">{error}</div>
+        <ToastContainer />
         <button className="btn btn-primary" onClick={() => navigate(-1)}>
           Go Back
         </button>
@@ -96,9 +99,10 @@ export default function ApplicationDetails() {
   }
 
   if (!application) {
+    showErrorToast('Application not found or invalid application ID.');
     return (
       <div className="container py-5 text-center">
-        <div className="alert alert-danger">Application not found or invalid application ID.</div>
+        <ToastContainer />
         <button className="btn btn-primary" onClick={() => navigate(-1)}>
           Go Back
         </button>
@@ -109,6 +113,8 @@ export default function ApplicationDetails() {
   const { applicant_id, job_id, cover_letter, status } = application;
 
   return (
+    <>
+    <Navbar />
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>
@@ -248,5 +254,7 @@ export default function ApplicationDetails() {
         </div>
       </div>
     </div>
+    <Footer />
+    </>
   );
 }

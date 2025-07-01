@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { fetchApplicants } from '../lib/recruiterApi';
-
+import Footer from '../components/Footer'; // Make sure the Footer path is correct
+import Navbar from '../components/Navbar'; 
 export default function JobApplicants() {
   const { jobId } = useParams();
   const { isRecruiter } = useAuth();
@@ -34,6 +35,8 @@ export default function JobApplicants() {
   if (error) return <div className="alert alert-danger">{error}</div>;
 
   return (
+    <>
+  <Navbar />
     <div className="container py-5">
       <h2>Applicants for Job</h2>
       {applicants.length === 0 ? (
@@ -51,5 +54,6 @@ export default function JobApplicants() {
         </ul>
       )}
     </div>
+      </>
   );
 }

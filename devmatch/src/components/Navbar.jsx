@@ -47,50 +47,57 @@ export default function Navbar() {
 
         <div className="collapse navbar-collapse justify-content-between" id="navbarNav">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-<li className="nav-item">
-  <Link to="/jobs" className="nav-link">Jobs</Link>
-</li>   
+            {isAuthenticated && (
+              <>
+                <li className="nav-item">
+                  <Link to="/jobs" className="nav-link">Jobs</Link>
+                </li>
+                <li className="nav-item">
+                  <a className="nav-link" href="/Freelancers">Freelancers</a>
+                </li>
+              </>
+            )}
          
-<li className="nav-item"><a className="nav-link" href="/chat">Community</a></li>
-<li className="nav-item">
-  <a 
-    className="nav-link d-flex align-items-center gap-2" 
-    href="/privatechats"
-    style={{
-      padding: '8px 12px',
-      fontWeight: '500'
-    }}
-  >
-    <FontAwesomeIcon 
-      icon={faComments} 
-      style={{ 
-        color: '#1a73e8',
-        fontSize: '1.1rem',
-        transition: 'all 0.2s ease'
-      }} 
-    />
-    <span 
-      style={{
-        color: '#1a73e8',
-        fontWeight: '600',
-        letterSpacing: '0.5px'
-      }}
-    >
-      Chatty
-    </span>
-  </a>
-</li>
+{isAuthenticated && (
+  <>
+    <li className="nav-item"><a className="nav-link" href="/chat">Community</a></li>
+    <li className="nav-item">
+      <a 
+        className="nav-link d-flex align-items-center gap-2" 
+        href="/privatechats"
+        style={{
+          padding: '8px 12px',
+          fontWeight: '500'
+        }}
+      >
+        <FontAwesomeIcon 
+          icon={faComments} 
+          style={{ 
+            color: '#1a73e8',
+            fontSize: '1.1rem',
+            transition: 'all 0.2s ease'
+          }} 
+        />
+        <span 
+          style={{
+            color: '#1a73e8',
+            fontWeight: '600',
+            letterSpacing: '0.5px'
+          }}
+        >
+          Chatty
+        </span>
+      </a>
+    </li>
+    <Link to="/following" className="nav-link">Following</Link>
+  </>
+)}
 
-<Link to="/following" className="nav-link">
-  Following
-</Link>
-<Link to="/my-applications" className="nav-link">
-  My Applications
-</Link>
-
-<li className="nav-item">
-  <a className="nav-link" href="/Freelancers">Freelancers</a>
-</li>
+{isProgrammer && (
+  <Link to="/my-applications" className="nav-link">
+    My Applications
+  </Link>
+)}
           </ul>
           {isAuthenticated && isRecruiter && (
   <Link to="/recruiter-dashboard" className="btn btn-outline-primary ms-3">
@@ -125,13 +132,14 @@ export default function Navbar() {
           </div>
         </div>
       </div>
-      {/* إشعار الجرس للمبرمج فقط */}
+      {/* Notification bell for programmers only */}
       {isAuthenticated && isProgrammer && (
         <div className="position-relative me-3">
           <button
             className="btn btn-link position-relative"
             style={{ fontSize: '1.5rem' }}
             onClick={handleBellClick}
+            aria-label="Notifications"
           >
             <FontAwesomeIcon icon={faBell} />
             {unreadCount > 0 && (
@@ -143,21 +151,21 @@ export default function Navbar() {
               </span>
             )}
           </button>
-          {/* قائمة الإشعارات */}
+          {/* Notification list */}
           {showNotifications && (
             <div
               className="card shadow border-0 position-absolute end-0 mt-2"
               style={{ minWidth: 300, zIndex: 1000 }}
             >
               <div className="card-body p-2" style={{ maxHeight: 350, overflowY: 'auto' }}>
-                <h6 className="card-title mb-2">الإشعارات</h6>
+                <h6 className="card-title mb-2">Notifications</h6>
                 {notifications.length === 0 ? (
-                  <div className="text-center text-muted">لا توجد إشعارات جديدة</div>
+                  <div className="text-center text-muted">No new notifications</div>
                 ) : (
                   notifications.map((notif, idx) => (
                     <div key={idx} className="alert alert-info py-2 px-3 mb-2">
                       <div style={{ fontSize: '0.95rem' }}>
-                        {notif.message || notif.text || 'لديك إشعار جديد'}
+                        {notif.message || notif.text || 'You have a new notification'}
                       </div>
                       <div className="text-muted small mt-1">
                         {notif.time ? new Date(notif.time).toLocaleString() : ''}

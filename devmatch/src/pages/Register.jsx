@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import GoogleSignupButton from '../components/GoogleSignupButton';
+import { useAuth } from './AuthContext';
 
 export default function Register() {
+  const { isAuthenticated } = useAuth();
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -19,6 +21,12 @@ export default function Register() {
   const [apiError, setApiError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const generateId = () => {
     return Math.random().toString(36).substr(2, 4);
@@ -158,9 +166,15 @@ export default function Register() {
     navigate('/login');
   } catch (err) {
     console.error('Registration error:', err);
-    setApiError(
-      err?.response?.data?.message || 'Registration failed. Please check your connection and try again.'
-    );
+    // Support backend field errors: { errors: { field: message } }
+    if (err?.response?.data?.errors && typeof err.response.data.errors === 'object') {
+      setErrors(prev => ({ ...prev, ...err.response.data.errors }));
+      setTouched(prev => ({ ...prev, ...Object.keys(err.response.data.errors).reduce((acc, key) => ({ ...acc, [key]: true }), {}) }));
+    } else {
+      setApiError(
+        err?.response?.data?.message || 'Registration failed. Please check your connection and try again.'
+      );
+    }
   } finally {
     setIsLoading(false);
   }

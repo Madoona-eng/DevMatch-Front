@@ -17,7 +17,13 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [verificationMsg, setVerificationMsg] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);

@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
-import Pagination from './Pagination';
-import { useAuthStore } from '../store/useAuthStore';
 import { Card, Badge, Button, Row, Col, Image } from 'react-bootstrap';
+import { useAuthStore } from '../store/useAuthStore';
 
 const FollowingList = () => {
   const currentUser = useAuthStore(state => state.authUser);
-  const setAuthUser = useAuthStore(state => state.setAuthUser);
+  const syncWithAuthContext = useAuthStore(state => state.syncWithAuthContext);
 
   const [following, setFollowing] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,10 +19,10 @@ const FollowingList = () => {
     const storedUser = localStorage.getItem('devmatch_user');
     if (storedUser && !currentUser) {
       const parsedUser = JSON.parse(storedUser);
-      setAuthUser(parsedUser);
+      syncWithAuthContext(parsedUser);
       console.log("✅ Rehydrated user from localStorage:", parsedUser);
     }
-  }, [currentUser, setAuthUser]);
+  }, [currentUser, syncWithAuthContext]);
 
   useEffect(() => {
     const fetchFollowing = async () => {
@@ -75,6 +74,40 @@ const FollowingList = () => {
       </div>
     );
   }
+
+  const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(i);
+    }
+    return (
+      <div className="pagination">
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className="pagination-btn"
+        >
+          Previous
+        </button>
+        {pages.map(page => (
+          <button
+            key={page}
+            onClick={() => onPageChange(page)}
+            className={`pagination-btn${currentPage === page ? ' active' : ''}`}
+          >
+            {page}
+          </button>
+        ))}
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="pagination-btn"
+        >
+          Next
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="container my-5">

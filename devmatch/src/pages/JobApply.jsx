@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { ToastContainer } from 'react-toastify';
+import { showErrorToast, showSuccessToast } from '../lib/toast';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { axiosInstance } from '../lib/axios';
 import Navbar from '../components/Navbar';
@@ -13,6 +15,7 @@ export default function JobApply() {
   const [error, setError] = useState(null);
   const [coverLetter, setCoverLetter] = useState('');
   const [cvUrl, setCvUrl] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [submitError, setSubmitError] = useState(null);
   const [success, setSuccess] = useState(false);
 
@@ -28,10 +31,35 @@ export default function JobApply() {
       });
   }, [id]);
 
+  useEffect(() => {
+    if (success) {
+      showSuccessToast('Application submitted successfully!');
+    }
+  }, [success]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError(null);
     setSuccess(false);
+    const errors = {};
+
+    if (!coverLetter.trim()) {
+      errors.coverLetter = 'Cover letter is required.';
+    }
+
+    if (!cvUrl.trim()) {
+      errors.cvUrl = 'CV URL is required.';
+    } else {
+      try {
+        new URL(cvUrl); // Validate URL manually
+      } catch {
+        errors.cvUrl = 'Please enter a valid URL.';
+      }
+    }
+
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
     try {
       await axiosInstance.post('/applications/', {
         job_id: id,
@@ -39,6 +67,9 @@ export default function JobApply() {
         cv_url: cvUrl
       });
       setSuccess(true);
+      setCoverLetter('');
+      setCvUrl('');
+      setFieldErrors({});
     } catch (err) {
       setSubmitError(err.response?.data?.message || 'Failed to submit application');
     }
@@ -58,25 +89,12 @@ export default function JobApply() {
   }
 
   if (error) {
+    showErrorToast(error);
     return (
       <>
         <Navbar />
         <div className="container py-5 text-center">
-          <div className="alert alert-danger">{error}</div>
-          <Link to="/jobs" className="btn btn-primary mt-3">
-            Back to Jobs
-          </Link>
-        </div>
-      </>
-    );
-  }
-
-  if (success) {
-    return (
-      <>
-        <Navbar />
-        <div className="container py-5 text-center">
-          <div className="alert alert-success">Application submitted successfully!</div>
+          <ToastContainer />
           <Link to="/jobs" className="btn btn-primary mt-3">
             Back to Jobs
           </Link>
@@ -89,6 +107,7 @@ export default function JobApply() {
     <>
       <Navbar />
       <div className="container py-5">
+        <ToastContainer />
         <div className="row justify-content-center">
           <div className="col-lg-8">
             <div className="card border-0 shadow">
@@ -96,29 +115,52 @@ export default function JobApply() {
                 <h1 className="h4 mb-0">Apply for: {job.title}</h1>
               </div>
               <div className="card-body">
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} noValidate>
                   <div className="mb-3">
-                    <label className="form-label">Cover Letter</label>
+                    <label className="form-label">Cover Letter <span className="text-danger">*</span></label>
                     <textarea
-                      className="form-control"
+                      className={`form-control${fieldErrors.coverLetter ? ' is-invalid' : ''}`}
                       value={coverLetter}
                       onChange={e => setCoverLetter(e.target.value)}
+                      onBlur={() => {
+                        if (!coverLetter.trim()) {
+                          setFieldErrors(prev => ({ ...prev, coverLetter: 'Cover letter is required.' }));
+                        } else {
+                          setFieldErrors(prev => { const { coverLetter, ...rest } = prev; return rest; });
+                        }
+                      }}
                       rows="5"
-                      required
                     />
+                    {fieldErrors.coverLetter && (
+                      <div className="text-danger small mt-1">{fieldErrors.coverLetter}</div>
+                    )}
                   </div>
+
                   <div className="mb-3">
-                    <label className="form-label">CV URL</label>
+                    <label className="form-label">CV URL <span className="text-danger">*</span></label>
                     <input
-                      type="url"
-                      className="form-control"
+                      type="text"
+                      className={`form-control${fieldErrors.cvUrl ? ' is-invalid' : ''}`}
                       value={cvUrl}
                       onChange={e => setCvUrl(e.target.value)}
+                      onBlur={() => {
+                        if (!cvUrl.trim()) {
+                          setFieldErrors(prev => ({ ...prev, cvUrl: 'CV URL is required.' }));
+                        } else {
+                          setFieldErrors(prev => { const { cvUrl, ...rest } = prev; return rest; });
+                        }
+                      }}
                       placeholder="https://your-cv-link.com"
-                      required
                     />
+                    {fieldErrors.cvUrl && (
+                      <div className="text-danger small mt-1">{fieldErrors.cvUrl}</div>
+                    )}
                   </div>
-                  {submitError && <div className="alert alert-danger">{submitError}</div>}
+
+                  {submitError && (
+                    <div className="text-danger mb-3">{submitError}</div>
+                  )}
+
                   <div className="d-flex justify-content-between">
                     <Link to={`/jobs/${id}`} className="btn btn-outline-primary">
                       <i className="bi bi-arrow-left me-2"></i>Back to Job
@@ -136,3 +178,4 @@ export default function JobApply() {
     </>
   );
 }
+

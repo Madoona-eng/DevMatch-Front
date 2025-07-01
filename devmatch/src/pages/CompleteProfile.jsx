@@ -1,6 +1,7 @@
 // CompleteProfile.js
 import React, { useState, useEffect, useRef } from 'react';
-import { toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
+import { showErrorToast } from '../lib/toast';
 import axios from 'axios';
 import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -194,12 +195,8 @@ export default function CompleteProfile() {
 
           <div className="card border-0 shadow-sm">
             <div className="card-body p-4 p-md-5">
-              {errors.server && (
-                <div className="alert alert-danger d-flex align-items-center mb-4">
-                  <i className="fas fa-exclamation-circle me-2"></i>
-                  {errors.server}
-                </div>
-              )}
+              {errors.server && showErrorToast(errors.server)}
+              <ToastContainer />
 
               <form onSubmit={handleSubmit}>
                 <div className="row g-4">

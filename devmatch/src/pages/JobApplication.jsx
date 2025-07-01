@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { ToastContainer } from 'react-toastify';
+import { showErrorToast } from '../lib/toast';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { axiosInstance } from '../lib/axios';
 import { useAuth } from './AuthContext';
@@ -15,6 +17,7 @@ export default function JobApplication() {
     cv_url: ''
   });
   const [success, setSuccess] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   useEffect(() => {
     const fetchJobDetails = async () => {
@@ -39,29 +42,29 @@ export default function JobApplication() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    let errors = {};
     if (!user) {
       setError('You must be logged in to apply');
       return;
     }
-
     if (user.role === 'recruiter') {
       setError('Recruiters cannot apply for jobs');
       return;
     }
-
-    if (!application.cv_url.trim()) {
-      setError('Please enter your CV URL');
-      return;
+    if (!application.cover_letter.trim()) {
+      errors.cover_letter = 'Cover letter is required.';
     }
-
+    if (!application.cv_url.trim()) {
+      errors.cv_url = 'CV URL is required.';
+    }
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     try {
       await axiosInstance.post('/applications/', {
         job_id: id,
         cover_letter: application.cover_letter,
         cv_url: application.cv_url
       });
-      
       setSuccess(true);
       setTimeout(() => navigate('/jobs'), 2000);
     } catch (err) {
@@ -85,9 +88,10 @@ export default function JobApplication() {
   }
 
   if (error && !success) {
+    showErrorToast(error);
     return (
       <div className="container py-5 text-center">
-        <div className="alert alert-danger">{error}</div>
+        <ToastContainer />
         <Link to={`/jobs/${id}`} className="btn btn-primary mt-3">
           Back to Job Details
         </Link>
@@ -142,17 +146,19 @@ export default function JobApplication() {
                   <h5 className="text-primary mb-3">Cover Letter</h5>
                   <div className="form-floating">
                     <textarea
-                      className="form-control"
+                      className={`form-control${fieldErrors.cover_letter ? ' is-invalid' : ''}`}
                       id="cover_letter"
                       name="cover_letter"
                       value={application.cover_letter}
                       onChange={handleChange}
                       placeholder="Write your cover letter here"
                       style={{ height: '200px' }}
-                      required
                     />
                     <label htmlFor="cover_letter">Why are you a good fit for this position?</label>
                   </div>
+                  {fieldErrors.cover_letter && (
+                    <div className="text-danger small mt-1">{fieldErrors.cover_letter}</div>
+                  )}
                 </div>
 
                 <div className="mb-4">
@@ -160,17 +166,19 @@ export default function JobApplication() {
                   <div className="mb-3">
                     <input
                       type="url"
-                      className="form-control"
+                      className={`form-control${fieldErrors.cv_url ? ' is-invalid' : ''}`}
                       id="cv_url"
                       name="cv_url"
                       value={application.cv_url}
                       onChange={handleChange}
                       placeholder="https://your-cv-link.com"
-                      required
                     />
                     <div className="form-text">
                       Please provide a public URL to your CV (Google Drive, Dropbox, etc.)
                     </div>
+                    {fieldErrors.cv_url && (
+                      <div className="text-danger small mt-1">{fieldErrors.cv_url}</div>
+                    )}
                   </div>
                 </div>
 

@@ -6,7 +6,10 @@ import { useAuth } from './AuthContext';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import './RecruiterDashboard.css';
+import '../styles/RecruiterProfile.css';
+import '../styles/RecruiterJobs.css';
 import Navbar from '../components/Navbar';
+import Pagination from '../components/Pagination';
 
 export default function RecruiterDashboard() {
   const { user, login } = useAuth();
@@ -42,6 +45,11 @@ export default function RecruiterDashboard() {
   });
   const [jobErrors, setJobErrors] = useState({});
   const [isPaid, setIsPaid] = useState(false);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const jobsPerPage = 6;
+  const totalPages = Math.ceil(jobs.length / jobsPerPage);
+  const paginatedJobs = jobs.slice((currentPage - 1) * jobsPerPage, currentPage * jobsPerPage);
 
   // Use localStorage to persist isPaid after payment
   useEffect(() => {
@@ -410,34 +418,32 @@ export default function RecruiterDashboard() {
 
               {/* Profile Tab */}
               {activeTab === 'profile' && (
-                <div className="card border-0 shadow-sm">
-                  <div className="card-header bg-white border-bottom py-3">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <h5 className="mb-0">
-                        <i className="bi bi-building me-2 text-primary"></i>
-                        Company Profile
-                      </h5>
-                      {!editing ? (
-                        <button 
-                          className="btn btn-outline-primary btn-sm"
-                          onClick={() => setEditing(true)}
-                        >
-                          <i className="bi bi-pencil me-1"></i>
-                          Edit Profile
-                        </button>
-                      ) : (
-                        <button 
-                          className="btn btn-outline-secondary btn-sm"
-                          onClick={() => setEditing(false)}
-                        >
-                          <i className="bi bi-x me-1"></i>
-                          Cancel
-                        </button>
-                      )}
-                    </div>
+                <div className="recruiter-profile-card">
+                  <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h5 className="mb-0 recruiter-profile-title">
+                      <i className="bi bi-building me-2 text-primary"></i>
+                      Company Profile
+                    </h5>
+                    {!editing ? (
+                      <button 
+                        className="btn btn-outline-primary btn-sm"
+                        onClick={() => setEditing(true)}
+                      >
+                        <i className="bi bi-pencil me-1"></i>
+                        Edit Profile
+                      </button>
+                    ) : (
+                      <button 
+                        className="btn btn-outline-secondary btn-sm"
+                        onClick={() => setEditing(false)}
+                      >
+                        <i className="bi bi-x me-1"></i>
+                        Cancel
+                      </button>
+                    )}
                   </div>
 
-                  <div className="card-body">
+                  <div>
                     {editing ? (
                       <form onSubmit={handleSubmit}>
                         <div className="row g-3">
@@ -566,72 +572,60 @@ export default function RecruiterDashboard() {
                         </div>
                       </form>
                     ) : (
-                      <div className="row">
-                        <div className="col-md-4 text-center mb-4 mb-md-0">
-                          {form.image ? (
-                            <img 
-                              src={form.image} 
-                              alt="Company logo" 
-                              className="img-fluid rounded" 
-                              style={{ maxHeight: '200px' }}
-                            />
-                          ) : (
-                            <div className="bg-light p-5 rounded d-flex align-items-center justify-content-center">
-                              <i className="bi bi-building text-muted" style={{ fontSize: '3rem' }}></i>
-                            </div>
-                          )}
-                        </div>
-                        <div className="col-md-8">
-                          <h4 className="mb-3">{form.company_name}</h4>
-                          <p className="text-muted mb-4">{form.company_description}</p>
-
-                          <div className="row">
-                            <div className="col-md-6">
-                              <div className="mb-3">
-                                <h6 className="text-muted mb-1">Website</h6>
-                                {form.company_website ? (
-                                  <a href={form.company_website} target="_blank" rel="noopener noreferrer">
-                                    {form.company_website}
-                                  </a>
-                                ) : (
-                                  <span className="text-muted">Not provided</span>
-                                )}
+                      <>
+                        <div className="recruiter-profile-header">
+                          <div>
+                            {form.image ? (
+                              <img 
+                                src={form.image} 
+                                alt="Company logo" 
+                                className="recruiter-profile-logo" 
+                              />
+                            ) : (
+                              <div className="bg-light d-flex align-items-center justify-content-center recruiter-profile-logo">
+                                <i className="bi bi-building text-muted" style={{ fontSize: '2.5rem' }}></i>
                               </div>
-
-                              <div className="mb-3">
-                                <h6 className="text-muted mb-1">Location</h6>
-                                <p>{form.location || 'Not provided'}</p>
-                              </div>
-                            </div>
-
-                            <div className="col-md-6">
-                              <div className="mb-3">
-                                <h6 className="text-muted mb-1">Company Size</h6>
-                                <p>{form.company_size || 'Not provided'}</p>
-                              </div>
-
-                              <div className="mb-3">
-                                <h6 className="text-muted mb-1">Founded</h6>
-                                <p>{form.founded_year || 'Not provided'}</p>
-                              </div>
-                            </div>
+                            )}
                           </div>
-
-                          {form.linkedin && (
-                            <div className="mt-3">
-                              <a 
-                                href={form.linkedin} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="btn btn-outline-primary btn-sm"
-                              >
-                                <i className="bi bi-linkedin me-1"></i>
-                                LinkedIn Profile
-                              </a>
-                            </div>
-                          )}
+                          <div className="recruiter-profile-info">
+                            <div className="recruiter-profile-title">{form.company_name}</div>
+                            <div className="recruiter-profile-location"><i className="bi bi-geo-alt me-1"></i> {form.location || 'Not provided'}</div>
+                          </div>
                         </div>
-                      </div>
+                        <div className="recruiter-profile-description">{form.company_description}</div>
+                        <div className="recruiter-profile-meta">
+                          <div className="recruiter-profile-meta-item">
+                            <i className="bi bi-globe me-1"></i>
+                            {form.company_website ? (
+                              <a href={form.company_website} target="_blank" rel="noopener noreferrer">
+                                {form.company_website}
+                              </a>
+                            ) : (
+                              <span>Website: Not provided</span>
+                            )}
+                          </div>
+                          <div className="recruiter-profile-meta-item">
+                            <i className="bi bi-people me-1"></i>
+                            {form.company_size || 'Company size: Not provided'}
+                          </div>
+                          <div className="recruiter-profile-meta-item">
+                            <i className="bi bi-calendar me-1"></i>
+                            {form.founded_year || 'Founded: Not provided'}
+                          </div>
+                        </div>
+                        {form.linkedin && (
+                          <div className="recruiter-profile-linkedin">
+                            <a 
+                              href={form.linkedin} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                            >
+                              <i className="bi bi-linkedin me-1"></i>
+                              LinkedIn Profile
+                            </a>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -695,41 +689,33 @@ export default function RecruiterDashboard() {
                         </button>
                       </div>
                     ) : (
-                      <div className="list-group list-group-flush">
-                        {jobs.map(job => (
-                          <div key={job._id || job.id} className="list-group-item border-0 py-3">
-                            <div className="d-flex justify-content-between align-items-start">
-                              <div>
-                                <h5 className="mb-1">
-                                  <Link to={`/jobs/${job._id || job.id}`} className="text-decoration-none">
-                                    {job.title}
-                                  </Link>
-                                </h5>
-                                <p className="text-muted mb-2">{job.description.substring(0, 100)}...</p>
-                                <div className="d-flex gap-3">
-                                  <small className="text-muted">
-                                    <i className="bi bi-calendar me-1"></i>
-                                    Posted: {new Date(job.created_at).toLocaleDateString()}
-                                  </small>
-                                  <small className={`badge ${job.status === 'open' ? 'bg-success' : 'bg-secondary'}`}>
-                                    {job.status}
-                                  </small>
-                                  <small className="text-muted">
-                                    <i className="bi bi-geo-alt me-1"></i>
-                                    {job.governorate}
-                                  </small>
-                                </div>
+                      <>
+                        <div className="recruiter-jobs-list">
+                          {paginatedJobs.map(job => (
+                            <div key={job._id || job.id} className="recruiter-job-card">
+                              <div className="recruiter-job-title">
+                                <Link to={`/jobs/${job._id || job.id}`} className="text-decoration-none text-primary">
+                                  {job.title}
+                                </Link>
                               </div>
-                              <div className="d-flex gap-2">
+                              <div className="recruiter-job-desc">
+                                {job.description.substring(0, 120)}{job.description.length > 120 ? '...' : ''}
+                              </div>
+                              <div className="recruiter-job-meta">
+                                <span><i className="bi bi-calendar me-1"></i> {new Date(job.created_at).toLocaleDateString()}</span>
+                                <span className="recruiter-job-badge">{job.status}</span>
+                                <span><i className="bi bi-geo-alt me-1"></i> {job.governorate}</span>
+                              </div>
+                              <div className="recruiter-job-actions">
                                 <button 
-                                  className="btn btn-sm btn-outline-primary"
+                                  className="btn btn-outline-primary btn-sm"
                                   onClick={() => handleViewJobApplications(job._id || job.id)}
                                 >
                                   <i className="bi bi-people me-1"></i>
                                   View Applications
                                 </button>
                                 <button 
-                                  className="btn btn-sm btn-outline-danger"
+                                  className="btn btn-outline-danger btn-sm"
                                   onClick={() => handleDeleteJob(job._id || job.id)}
                                 >
                                   <i className="bi bi-trash me-1"></i>
@@ -737,9 +723,19 @@ export default function RecruiterDashboard() {
                                 </button>
                               </div>
                             </div>
+                          ))}
+                        </div>
+                        {/* Pagination UI */}
+                        {jobs.length > jobsPerPage && (
+                          <div className="recruiter-pagination">
+                            <Pagination
+                              currentPage={currentPage}
+                              totalPages={totalPages}
+                              onPageChange={page => setCurrentPage(page)}
+                            />
                           </div>
-                        ))}
-                      </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>

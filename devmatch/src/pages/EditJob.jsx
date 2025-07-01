@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { ToastContainer } from 'react-toastify';
+import { showErrorToast } from '../lib/toast';
 import { toast } from 'react-toastify';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
@@ -55,7 +57,10 @@ export default function EditJob() {
   };
 
   if (loading) return <div>Loading...</div>;
-  if (error) return <div className="alert alert-danger">{error}</div>;
+  if (error) {
+    showErrorToast(error);
+    return <ToastContainer />;
+  }
 
   return (
     <div className="container py-5">

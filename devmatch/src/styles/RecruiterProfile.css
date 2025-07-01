@@ -1,0 +1,101 @@
+/* Modern UI for Recruiter Company Profile */
+.recruiter-profile-card {
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10), 0 1.5px 4px rgba(0,0,0,0.04);
+  padding: 2.5rem 2rem 2rem 2rem;
+  margin-bottom: 2rem;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.recruiter-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.recruiter-profile-logo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 2px 12px rgba(25, 118, 210, 0.08);
+  border: 4px solid #e3f2fd;
+  background: #f5f7fa;
+}
+
+.recruiter-profile-info {
+  flex: 1;
+}
+
+.recruiter-profile-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 0.5rem;
+}
+
+.recruiter-profile-location {
+  color: #616161;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.recruiter-profile-description {
+  color: #374151;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+}
+
+.recruiter-profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.recruiter-profile-meta-item {
+  color: #3949ab;
+  font-size: 1.05rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.recruiter-profile-linkedin {
+  margin-top: 1rem;
+}
+
+.recruiter-profile-linkedin a {
+  color: #1976d2;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1.5px solid #1976d2;
+  border-radius: 2em;
+  padding: 0.4em 1.2em;
+  transition: background 0.2s, color 0.2s;
+}
+
+.recruiter-profile-linkedin a:hover {
+  background: #e3f2fd;
+  color: #0d47a1;
+}
+
+@media (max-width: 700px) {
+  .recruiter-profile-header {
+    flex-direction: column;
+    gap: 1.2rem;
+    align-items: flex-start;
+  }
+  .recruiter-profile-card {
+    padding: 1.2rem 0.7rem;
+  }
+  .recruiter-profile-title {
+    font-size: 1.3rem;
+  }
+}

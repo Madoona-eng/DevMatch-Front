@@ -32,22 +32,26 @@ export default function AuthSuccess() {
             localStorage.setItem('devmatch_user', JSON.stringify(normalizedUser));
             localStorage.setItem('token', token);
             login(normalizedUser);
-            // إذا كان الدور pending أو غير موجود، انتقل لاختيار الدور
-            if (normalizedUser.isProfileComplete) {
-              // If profile is complete, go to home
-              console.log('[AuthSuccess] User profile complete, redirecting to /');
-              navigate('/');
-            } else if (!normalizedUser.role || normalizedUser.role === 'pending') {
+            // Unified logic: check role and profile completion
+            if (!normalizedUser.role || normalizedUser.role === 'pending') {
+              // No role chosen yet
               console.log('[AuthSuccess] User role pending, redirecting to /choose-role');
               navigate('/choose-role', { state: { token, userId: normalizedUser.id } });
-            } else if (normalizedUser.role === 'programmer') {
-              console.log('[AuthSuccess] User is programmer, redirecting to /CompleteFreelancerProfile');
-              navigate('/CompleteFreelancerProfile');
-            } else if (normalizedUser.role === 'recruiter') {
-              console.log('[AuthSuccess] User is recruiter, redirecting to /complete-profile');
-              navigate('/complete-profile');
+            } else if (!normalizedUser.isProfileComplete) {
+              // Role chosen, but profile not complete
+              if (normalizedUser.role === 'programmer') {
+                console.log('[AuthSuccess] Programmer, redirecting to /completefreelancerprofile');
+                navigate('/completefreelancerprofile');
+              } else if (normalizedUser.role === 'recruiter') {
+                console.log('[AuthSuccess] Recruiter, redirecting to /complete-profile');
+                navigate('/complete-profile');
+              } else {
+                // Unknown role, fallback
+                navigate('/');
+              }
             } else {
-              console.log('[AuthSuccess] User has other role, redirecting to /');
+              // Both role and profile are complete
+              console.log('[AuthSuccess] User has role and profile complete, redirecting to /');
               navigate('/');
             }
           } else {

@@ -1,9 +1,12 @@
 // src/pages/JobApplications.jsx
 import React, { useState, useEffect } from 'react';
+import { ToastContainer } from 'react-toastify';
+import { showErrorToast } from '../lib/toast';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { axiosInstance } from '../lib/axios';
 import { useAuth } from './AuthContext';
-
+import Footer from '../components/Footer'; // Make sure the Footer path is correct
+import Navbar from '../components/Navbar'; 
 export default function JobApplications() {
   const { jobId } = useParams();
   const navigate = useNavigate();
@@ -95,9 +98,10 @@ export default function JobApplications() {
   }
 
   if (error) {
+    showErrorToast(error);
     return (
       <div className="container py-5">
-        <div className="alert alert-danger">{error}</div>
+        <ToastContainer />
         <button className="btn btn-primary" onClick={() => navigate(-1)}>
           Go Back
         </button>
@@ -106,6 +110,8 @@ export default function JobApplications() {
   }
 
   return (
+    <>
+  <Navbar />
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>
@@ -233,5 +239,7 @@ export default function JobApplications() {
         </div>
       )}
     </div>
+ 
+      </>
   );
 }

@@ -29,6 +29,7 @@ function ProfileCompletionForm() {
   const [technology, setTechnology] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [github, setGithub] = useState('');
@@ -43,21 +44,23 @@ function ProfileCompletionForm() {
   };
 
   const validateForm = () => {
-    if (!aboutMe.trim()) return setError('Please enter About Me') || false;
-    if (!location.trim()) return setError('Please enter Location') || false;
-    if (!experience.trim() || isNaN(experience) || experience < 0)
-      return setError('Please enter a valid Experience') || false;
-    if (!skills.trim()) return setError('Please enter Skills') || false;
-    if (!technology.trim()) return setError('Please enter Technology') || false;
-    if (!imageFile) return setError('Please upload an Image') || false;
-    if (!github.trim()) return setError('Please enter your GitHub link') || false;
-    return true;
+    const errors = {};
+    if (!aboutMe.trim()) errors.aboutMe = 'Please enter About Me';
+    if (!location.trim()) errors.location = 'Please enter Location';
+    if (!experience.trim() || isNaN(experience) || experience < 0) errors.experience = 'Please enter a valid Experience';
+    if (!skills.trim()) errors.skills = 'Please enter Skills';
+    if (!technology.trim()) errors.technology = 'Please enter Technology';
+    if (!imageFile) errors.image = 'Please upload an Image';
+    if (!github.trim()) errors.github = 'Please enter your GitHub link';
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
+    setFieldErrors({});
 
     if (!userId) {
       setError('User not authenticated.');
@@ -95,6 +98,7 @@ function ProfileCompletionForm() {
         technology: techArray,
         image: imageBase64,
         github,
+        isProfileComplete: true // Mark profile as complete
       };
 
       // Use shared axios instance for PUT
@@ -104,8 +108,10 @@ function ProfileCompletionForm() {
       setSuccess('Profile updated successfully!');
       setTimeout(() => navigate('/'), 1000);
     } catch (err) {
-      // Show backend error message if available
-      if (err.response && err.response.data && err.response.data.message) {
+      // Show backend field errors if available
+      if (err.response && err.response.data && err.response.data.errors) {
+        setFieldErrors(err.response.data.errors);
+      } else if (err.response && err.response.data && err.response.data.message) {
         setError(err.response.data.message);
       } else {
         setError('Failed to update profile. Please try again.');
@@ -132,8 +138,9 @@ function ProfileCompletionForm() {
           placeholder="Tell us about yourself..."
           value={aboutMe}
           onChange={(e) => setAboutMe(e.target.value)}
-          isInvalid={!!error && !aboutMe.trim()}
+          isInvalid={!!fieldErrors.aboutMe}
         />
+        {fieldErrors.aboutMe && <div className="text-danger small mt-1">{fieldErrors.aboutMe}</div>}
       </Form.Group>
 
       <Form.Group controlId="image" className="mb-3">
@@ -142,8 +149,9 @@ function ProfileCompletionForm() {
           type="file"
           accept="image/*"
           onChange={handleImageChange}
-          isInvalid={!!error && !imageFile}
+          isInvalid={!!fieldErrors.image}
         />
+        {fieldErrors.image && <div className="text-danger small mt-1">{fieldErrors.image}</div>}
         {imagePreview && (
           <div className="mt-3 text-center">
             <Image
@@ -168,8 +176,9 @@ function ProfileCompletionForm() {
           placeholder="Enter your location"
           value={location}
           onChange={(e) => setLocation(e.target.value)}
-          isInvalid={!!error && !location.trim()}
+          isInvalid={!!fieldErrors.location}
         />
+        {fieldErrors.location && <div className="text-danger small mt-1">{fieldErrors.location}</div>}
       </Form.Group>
 
       <Form.Group controlId="experience" className="mb-3">
@@ -180,8 +189,9 @@ function ProfileCompletionForm() {
           placeholder="e.g., 3"
           value={experience}
           onChange={(e) => setExperience(e.target.value)}
-          isInvalid={!!error && (!experience.trim() || isNaN(experience) || experience < 0)}
+          isInvalid={!!fieldErrors.experience}
         />
+        {fieldErrors.experience && <div className="text-danger small mt-1">{fieldErrors.experience}</div>}
       </Form.Group>
 
       <Form.Group controlId="skills" className="mb-3">
@@ -191,8 +201,9 @@ function ProfileCompletionForm() {
           placeholder="e.g., HTML, CSS, JavaScript"
           value={skills}
           onChange={(e) => setSkills(e.target.value)}
-          isInvalid={!!error && !skills.trim()}
+          isInvalid={!!fieldErrors.skills}
         />
+        {fieldErrors.skills && <div className="text-danger small mt-1">{fieldErrors.skills}</div>}
       </Form.Group>
 
       <Form.Group controlId="technology" className="mb-3">
@@ -202,8 +213,9 @@ function ProfileCompletionForm() {
           placeholder="e.g., Angular, React, NodeJS"
           value={technology}
           onChange={(e) => setTechnology(e.target.value)}
-          isInvalid={!!error && !technology.trim()}
+          isInvalid={!!fieldErrors.technology}
         />
+        {fieldErrors.technology && <div className="text-danger small mt-1">{fieldErrors.technology}</div>}
       </Form.Group>
 
       <Form.Group controlId="github" className="mb-3">
@@ -213,8 +225,9 @@ function ProfileCompletionForm() {
           placeholder="https://github.com/yourusername"
           value={github}
           onChange={(e) => setGithub(e.target.value)}
-          isInvalid={!!error && !github.trim()}
+          isInvalid={!!fieldErrors.github}
         />
+        {fieldErrors.github && <div className="text-danger small mt-1">{fieldErrors.github}</div>}
       </Form.Group>
 
       <div className="d-grid mt-4">

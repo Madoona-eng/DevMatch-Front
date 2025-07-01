@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { axiosInstance } from '../lib/axios';
 import Navbar from '../components/Navbar';
 import { useAuthStore } from '../store/useAuthStore';
+import { Briefcase, MapPin, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function JobsPage() {
   const { authUser } = useAuthStore();
@@ -13,6 +14,8 @@ export default function JobsPage() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const jobsPerPage = 10;
 
   const fetchJobs = async (params = {}) => {
     setLoading(true);
@@ -25,6 +28,7 @@ export default function JobsPage() {
       if (query.length > 0) url += `?${query.join('&')}`;
       const res = await axiosInstance.get(url);
       setJobs(res.data);
+      setCurrentPage(1); // reset to first page on search
     } catch (err) {
       setError('Failed to load jobs');
     } finally {
@@ -38,12 +42,18 @@ export default function JobsPage() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (!title.trim() && !location.trim()) {
-      fetchJobs();
-    } else {
-      fetchJobs({ title, location });
-    }
+    fetchJobs({ title, location });
   };
+
+  // Pagination logic
+  const indexOfLastJob = currentPage * jobsPerPage;
+  const indexOfFirstJob = indexOfLastJob - jobsPerPage;
+  const currentJobs = jobs.slice(indexOfFirstJob, indexOfLastJob);
+  const totalPages = Math.ceil(jobs.length / jobsPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const nextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  const prevPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
 
   return (
     <>
@@ -81,6 +91,7 @@ export default function JobsPage() {
             </button>
           </div>
         </form>
+
         {loading ? (
           <div className="d-flex justify-content-center py-5">
             <div className="spinner-border text-primary" role="status">
@@ -88,9 +99,7 @@ export default function JobsPage() {
             </div>
           </div>
         ) : error ? (
-          <div className="alert alert-danger text-center">
-            {error}
-          </div>
+          <div className="alert alert-danger text-center">{error}</div>
         ) : jobs.length === 0 ? (
           <div className="text-center py-5">
             <div className="card border-0 shadow-sm py-5">
@@ -102,25 +111,64 @@ export default function JobsPage() {
             </div>
           </div>
         ) : (
-          <div className="row g-4">
-            {jobs.map(job => (
-              <div key={job._id || job.id} className="col-lg-6">
-                <div className="card h-100 border-0 shadow-sm">
-                  <div className="card-body">
-                    <h5 className="card-title text-primary">{job.title}</h5>
-                    <p className="card-text text-muted mb-2">{job.specialization} | {job.governorate}</p>
-                    <p className="card-text">{job.description?.substring(0, 120)}...</p>
-                    <div className="d-flex justify-content-between align-items-center mt-3">
-                      <span className={`badge ${job.status === 'open' ? 'bg-success' : 'bg-secondary'}`}>{job.status}</span>
-                      <Link to={`/jobs/${job._id || job.id}`} className="btn btn-outline-primary btn-sm">
-                        View Details
-                      </Link>
+          <>
+            <div className="row g-4 mb-4">
+              {currentJobs.map(job => (
+                <div key={job._id || job.id} className="col-lg-6">
+                  <div className="jobs-card h-100">
+                    <div className="card-body">
+                      <h5 className="jobs-card-title d-flex align-items-center gap-2">
+                        <Briefcase size={20} className="text-primary" />
+                        {job.title}
+                      </h5>
+                      <p className="card-text text-muted mb-2 d-flex align-items-center gap-2">
+                        <FileText size={16} className="text-secondary" />
+                        {job.specialization} &nbsp;|&nbsp;
+                        <MapPin size={16} className="text-secondary" />
+                        {job.governorate}
+                      </p>
+                      <p className="card-text">{job.description?.substring(0, 120)}...</p>
+                      <div className="d-flex justify-content-between align-items-center mt-3">
+                        <span className={`jobs-card-badge ${job.status === 'open' ? 'bg-success text-white' : 'bg-secondary text-white'}`}>{job.status}</span>
+                        <Link to={`/jobs/${job._id || job.id}`} className="btn btn-outline-primary btn-sm">
+                          <Briefcase size={16} className="me-1" /> View Details
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <nav className="jobs-pagination">
+                <button
+                  className="jobs-pagination-btn"
+                  onClick={prevPage}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i}
+                    className={`jobs-pagination-btn${currentPage === i + 1 ? ' active' : ''}`}
+                    onClick={() => paginate(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                <button
+                  className="jobs-pagination-btn"
+                  onClick={nextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight size={18} />
+                </button>
+              </nav>
+            )}
+          </>
         )}
       </div>
     </>

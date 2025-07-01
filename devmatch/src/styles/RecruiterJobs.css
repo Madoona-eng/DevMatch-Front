@@ -1,0 +1,104 @@
+/* Modern card design for recruiter jobs */
+.recruiter-jobs-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.recruiter-job-card {
+  background: #fff;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08), 0 1.5px 4px rgba(0,0,0,0.04);
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+  border: none;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
+}
+
+.recruiter-job-card:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08);
+  transform: translateY(-4px) scale(1.01);
+}
+
+.recruiter-job-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a237e;
+  margin-bottom: 0.5rem;
+}
+
+.recruiter-job-desc {
+  color: #616161;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  min-height: 48px;
+}
+
+.recruiter-job-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  font-size: 0.95rem;
+  color: #3949ab;
+  margin-bottom: 1rem;
+}
+
+.recruiter-job-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.recruiter-job-badge {
+  font-size: 0.9rem;
+  padding: 0.3em 0.8em;
+  border-radius: 1em;
+  background: #e3f2fd;
+  color: #1976d2;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .recruiter-jobs-list {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .recruiter-job-card {
+    padding: 1.2rem 0.8rem;
+  }
+}
+
+/* Pagination modern style */
+.recruiter-pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+.recruiter-pagination .pagination {
+  background: #fff;
+  border-radius: 2em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 0.5em 1.5em;
+}
+.recruiter-pagination .page-item.active .page-link {
+  background: #1976d2;
+  color: #fff;
+  border-radius: 1em;
+  font-weight: 600;
+}
+.recruiter-pagination .page-link {
+  color: #1976d2;
+  border: none;
+  background: none;
+  font-size: 1.1rem;
+  transition: background 0.2s, color 0.2s;
+}
+.recruiter-pagination .page-link:hover {
+  background: #e3f2fd;
+  color: #0d47a1;
+  border-radius: 1em;
+}
