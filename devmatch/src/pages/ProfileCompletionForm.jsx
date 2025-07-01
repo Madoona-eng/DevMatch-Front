@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Form, Button, Image, Alert } from 'react-bootstrap';
 import { axiosInstance } from '../lib/axios';
 import { useNavigate } from 'react-router-dom';
+import { getUserId } from '../utils/userUtils';
 
 function ProfileCompletionForm() {
   // Get user from localStorage under 'devmatch_user'
@@ -12,7 +13,7 @@ function ProfileCompletionForm() {
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
-        setUserId(user.id);
+        setUserId(getUserId(user));
       } catch (e) {
         setUserId(null);
       }

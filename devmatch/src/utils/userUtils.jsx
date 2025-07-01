@@ -11,7 +11,7 @@ export const isSameUser = (user1, user2) => {
 };
 
 // Normalize user object so that id is always present
-function normalizeUser(user) {
+export function normalizeUser(user) {
   if (!user) return user;
   if (user._id && !user.id) {
     user.id = user._id;

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { normalizeUser } from '../utils/userUtils';
 
 export default function AuthSuccess() {
   const navigate = useNavigate();
@@ -26,23 +27,23 @@ export default function AuthSuccess() {
         .then(user => {
           console.log('[AuthSuccess] user:', user);
           // Normalize user object: ensure id is present
-          if (user && user._id && !user.id) user.id = user._id;
-          if (user && user.email === email) {
-            localStorage.setItem('devmatch_user', JSON.stringify(user));
+          const normalizedUser = normalizeUser(user);
+          if (normalizedUser && normalizedUser.email === email) {
+            localStorage.setItem('devmatch_user', JSON.stringify(normalizedUser));
             localStorage.setItem('token', token);
-            login(user);
+            login(normalizedUser);
             // إذا كان الدور pending أو غير موجود، انتقل لاختيار الدور
-            if (user.isProfileComplete) {
+            if (normalizedUser.isProfileComplete) {
               // If profile is complete, go to home
               console.log('[AuthSuccess] User profile complete, redirecting to /');
               navigate('/');
-            } else if (!user.role || user.role === 'pending') {
+            } else if (!normalizedUser.role || normalizedUser.role === 'pending') {
               console.log('[AuthSuccess] User role pending, redirecting to /choose-role');
-              navigate('/choose-role', { state: { token, userId: user._id || user.id } });
-            } else if (user.role === 'programmer') {
+              navigate('/choose-role', { state: { token, userId: normalizedUser.id } });
+            } else if (normalizedUser.role === 'programmer') {
               console.log('[AuthSuccess] User is programmer, redirecting to /CompleteFreelancerProfile');
               navigate('/CompleteFreelancerProfile');
-            } else if (user.role === 'recruiter') {
+            } else if (normalizedUser.role === 'recruiter') {
               console.log('[AuthSuccess] User is recruiter, redirecting to /complete-profile');
               navigate('/complete-profile');
             } else {
