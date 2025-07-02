@@ -43,6 +43,9 @@ import { NotificationProvider } from "./pages/NotificationContext";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import { LanguageProvider } from "./components/LanguageContext";
+
+
 function AppContent() {
   const { theme } = useThemeStore();
   const { user } = useAuth();
@@ -100,9 +103,12 @@ function AppContent() {
 
 function App() {
   return (
+        <LanguageProvider>
+
     <AuthProvider>
       <AppContent />
     </AuthProvider>
+        </LanguageProvider>
   );
 }
 

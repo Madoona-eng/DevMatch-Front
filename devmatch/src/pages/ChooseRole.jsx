@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -7,37 +7,61 @@ export default function ChooseRole() {
   const location = useLocation();
   const { token, userId } = location.state || {};
 
-  const handleChoose = async (role) => {
+  const [role, setRole] = useState(null);
+  const [cvUrl, setCvUrl] = useState('');
+
+  const handleChoose = (selectedRole) => {
+    setRole(selectedRole);
+  };
+
+  const handleContinue = async () => {
     const user = JSON.parse(localStorage.getItem('devmatch_user')) || {};
-    // Use the latest token from localStorage or state
     const currentToken = localStorage.getItem('token') || token;
+
+    if (role === 'programmer') {
+      if (!cvUrl) {
+        toast.error('Please enter your CV URL.');
+        return;
+      }
+      try {
+        new URL(cvUrl); // Validate URL format
+      } catch (error) {
+        toast.error('Invalid CV URL.');
+        return;
+      }
+    }
+
     try {
-      // Update role and expect new token in response
       const res = await fetch('http://localhost:5000/api/auth/update-role', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${currentToken}`,
         },
-        body: JSON.stringify({ userId: user._id || user.id || userId, role }),
+        body: JSON.stringify({
+          userId: user._id || user.id || userId,
+          role,
+          ...(role === 'programmer' && { cv_url: cvUrl })
+        }),
       });
+
+      const data = await res.json();
+
       if (res.ok) {
-        const data = await res.json();
-        // Save new token and user if provided
         if (data.token) {
           localStorage.setItem('token', data.token);
         }
         if (data.user) {
           localStorage.setItem('devmatch_user', JSON.stringify(data.user));
         }
-        // Use new token for all future requests
+
         if (role === 'programmer') {
-          navigate('/CompleteFreelancerProfile');
-        } else if (role === 'recruiter') {
+          navigate('/completefreelancerprofile');
+        } else {
           navigate('/complete-profile');
         }
       } else {
-        toast.error('Failed to update role. Please try again.');
+        toast.error(data.message || 'Failed to update role');
       }
     } catch (err) {
       toast.error('Error updating role. Please try again.');
@@ -52,12 +76,34 @@ export default function ChooseRole() {
           <h3 className="fw-bold mb-2" style={{ color: '#007bff' }}>Welcome to DevMatch!</h3>
           <p className="text-muted mb-0">Please choose your role to continue</p>
         </div>
-        <button className="btn btn-primary w-100 py-3 mb-3 d-flex align-items-center justify-content-center fs-5" style={{ borderRadius: 12 }} onClick={() => handleChoose('programmer')}>
-          <i className="bi bi-laptop me-2 fs-4"></i> I am a Programmer
+
+        <button className={`btn ${role === 'programmer' ? 'btn-primary' : 'btn-outline-primary'} w-100 py-3 mb-3`} onClick={() => handleChoose('programmer')}>
+          <i className="bi bi-laptop me-2"></i> I am a Programmer
         </button>
-        <button className="btn btn-outline-primary w-100 py-3 d-flex align-items-center justify-content-center fs-5" style={{ borderRadius: 12 }} onClick={() => handleChoose('recruiter')}>
-          <i className="bi bi-person-badge me-2 fs-4"></i> I am a Recruiter
+        <button className={`btn ${role === 'recruiter' ? 'btn-primary' : 'btn-outline-primary'} w-100 py-3`} onClick={() => handleChoose('recruiter')}>
+          <i className="bi bi-person-badge me-2"></i> I am a Recruiter
         </button>
+
+        {role === 'programmer' && (
+          <div className="mt-3">
+            <label htmlFor="cvUrl">Enter your CV URL (Google Drive, etc.)</label>
+            <input
+              type="url"
+              className="form-control mt-1"
+              id="cvUrl"
+              placeholder="https://your-cv-link.com"
+              value={cvUrl}
+              onChange={(e) => setCvUrl(e.target.value)}
+              required
+            />
+          </div>
+        )}
+
+        {role && (
+          <button className="btn btn-success mt-4 w-100" onClick={handleContinue}>
+            Continue
+          </button>
+        )}
       </div>
     </div>
   );
