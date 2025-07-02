@@ -148,7 +148,7 @@ export default function CompleteProfile() {
         localStorage.setItem('token', response.data.token);
       }
       login(updatedUser);
-      toast.success('Profile completed successfully! 🎉');
+      // Optionally, you can use showSuccessToast if you want, or just navigate
       navigate('/'); // Navigate to home after completion
     } catch (err) {
       console.error('Error updating profile:', err);
